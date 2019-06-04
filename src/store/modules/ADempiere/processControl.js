@@ -1,7 +1,6 @@
 import {
   runProcess,
-  requestProcessActivity,
-  getBrowserSearch
+  requestProcessActivity
 } from '@/api/ADempiere/data'
 
 const processControl = {
@@ -53,19 +52,10 @@ const processControl = {
         reportExportType = payload.action.reportExportType
       }
       var processResult = {}
-      var fieldList = rootGetters.getPanelParameters(payload.action.uuid)
-      var fieldListRange = []
-      if (fieldList.length > 0) {
-        var parameters = fieldList.map(fieldItem => {
-          if (fieldItem.isRange) {
-            fieldListRange.push({ columnName: fieldItem.columnName + '_To', value: fieldItem.valueTo })
-          }
-          return {
-            columnName: fieldItem.columnName,
-            value: fieldItem.value
-          }
-        })
-        var finalParameters = parameters.concat(fieldListRange)
+      var finalParameters = rootGetters.getParamsProcessToServer(payload.containerUuid)
+      if (finalParameters.length < 1) {
+        console.info('Parameters empty')
+        return
       }
       var processToRun = {
         uuid: payload.action.uuid,
@@ -89,26 +79,21 @@ const processControl = {
       if (!processToRun.isReport) {
         commit('addStartedProcess', processToRun)
       }
-      var browserToSearch = {
-        uuid: '8aaf072a-fb40-11e8-a479-7a0060f0aa01',
-        parameters: [
-          {
-            columnName: 'I_DocStatus',
-            value: 'CO'
-          }
-        ]
-      }
-      //  Browser Search
-      getBrowserSearch(browserToSearch)
-        .then(response => {
-          console.log(response)
-        })
-        .catch(error => {
-          console.log(error)
-        })
+
       // Run process on server and wait for it for notify
       runProcess(processToRun)
         .then(response => {
+          var output = response.getOutput()
+          if (typeof output !== 'undefined') {
+            output = {
+              uuid: output.getUuid(),
+              name: output.getName(),
+              description: output.getDescription(),
+              fileName: output.getFilename().replace(/ /g, ''),
+              outputStream: output.getOutputstream(),
+              reportExportType: output.getReportexporttype()
+            }
+          }
           processResult = {
             action: processToRun.name,
             instanceUuid: response.getInstanceuuid().trim(),
@@ -118,15 +103,7 @@ const processControl = {
             summary: response.getSummary(),
             resultTableId: response.getResulttableid(),
             logs: response.getLogsList(),
-            output: {
-              uuid: response.getOutput().getUuid(),
-              name: response.getOutput().getName(),
-              description: response.getOutput().getDescription(),
-              fileName: response.getOutput().getFilename().replace(/ /g, ''),
-              output: response.getOutput().getOutput(),
-              outputStream: response.getOutput().getOutputstream(),
-              reportExportType: response.getOutput().getReportexporttype()
-            }
+            output: output
           }
           dispatch('finishProcess', processResult)
         })
