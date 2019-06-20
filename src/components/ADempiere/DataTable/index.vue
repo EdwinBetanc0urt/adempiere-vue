@@ -173,9 +173,9 @@ export default {
      * Select or unselect rows
      * USE ONLY MOUNTED
      */
-    toggleSelection(rows) {
-      if (rows) {
-        rows.forEach(row => {
+    toggleSelection(rowsSelection) {
+      if (rowsSelection) {
+        rowsSelection.forEach(row => {
           this.$refs.multipleTable.toggleRowSelection(row)
         })
       } else {
@@ -205,14 +205,15 @@ export default {
         }
       }
     },
-    handleSelection(rows, index) {
+    handleSelection(rowsSelection, rowSelected) {
       // index.edit = !index.edit
+      // rowSelected.edit = !rowSelected.edit
       // if (this.isAllSelected(rows.length)) {
       //   index.edit = true
       // }
       this.$store.dispatch('recordSelection', {
         containerUuid: this.containerUuid,
-        selection: rows,
+        selection: rowsSelection,
         record: this.getDataDetail
       })
     },
@@ -223,17 +224,17 @@ export default {
       }
       return false
     },
-    handleSelectionAll(rows) {
+    handleSelectionAll(rowsSelection) {
       // var selectAll = false
-      // if (this.isAllSelected(rows.length)) {
+      // if (this.isAllSelected(rowsSelection.length)) {
       //   selectAll = true
       // }
       this.$store.dispatch('recordSelection', {
         containerUuid: this.containerUuid,
-        selection: rows,
+        selection: rowsSelection,
         record: this.getDataDetail
       })
-      // rows.forEach(row => {
+      // rowsSelection.forEach(row => {
       //   row.edit = selectAll
       // })
     },
