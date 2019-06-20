@@ -33,7 +33,7 @@ export default {
       default: () => undefined
     },
     valueModel: {
-      type: String,
+      type: [String, Number],
       default: undefined
     }
   },
@@ -53,7 +53,7 @@ export default {
   beforeMount() {
     // enable to dataTable records
     if (typeof this.valueModel !== 'undefined') {
-      this.value = this.valueModel
+      this.value = String(this.valueModel)
     }
   },
   methods: {

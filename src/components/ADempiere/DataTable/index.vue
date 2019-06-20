@@ -22,7 +22,9 @@
       highlight-current-row
       :row-style="rowStyle"
       :data="getDataDetail"
+      @row-dblclick="handleRowClick"
       @select="handleSelection"
+      @select-all="handleSelectionAll"
     >
       <el-table-column
         v-if="isTableSelection"
@@ -187,13 +189,53 @@ export default {
         type: 'success'
       })
     },
-    handleSelection(row, index) {
-      index.edit = !index.edit
+    handleRowClick(row, column, event) {
+      if (row.edit) {
+        row.edit = false
+        this.$message({
+          message: 'The title has been edited',
+          type: 'success'
+        })
+      } else {
+        var inSelection = this.getDataSelection.some(item => {
+          return JSON.stringify(item) === JSON.stringify(row)
+        })
+        if (inSelection) {
+          row.edit = true
+        }
+      }
+    },
+    handleSelection(rows, index) {
+      // index.edit = !index.edit
+      // if (this.isAllSelected(rows.length)) {
+      //   index.edit = true
+      // }
       this.$store.dispatch('recordSelection', {
         containerUuid: this.containerUuid,
-        selection: row,
+        selection: rows,
         record: this.getDataDetail
       })
+    },
+    isAllSelected(selection = 0) {
+      if (selection > 0) {
+        var data = this.$store.getters.getDataRecordDetail(this.containerUuid)
+        return data.length === selection
+      }
+      return false
+    },
+    handleSelectionAll(rows) {
+      // var selectAll = false
+      // if (this.isAllSelected(rows.length)) {
+      //   selectAll = true
+      // }
+      this.$store.dispatch('recordSelection', {
+        containerUuid: this.containerUuid,
+        selection: rows,
+        record: this.getDataDetail
+      })
+      // rows.forEach(row => {
+      //   row.edit = selectAll
+      // })
     },
     filterResult() {
       var data = []
