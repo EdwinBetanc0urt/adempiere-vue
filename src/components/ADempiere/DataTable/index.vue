@@ -20,7 +20,7 @@
     <el-table
       ref="multipleTable"
       fit
-      height="300"
+      height="400"
       style="width: 100%"
       stripe
       border
@@ -57,7 +57,10 @@
                 :in-table="true"
                 :metadata-field="{
                   ...item,
-                  displayColumn: scope.row['DisplayColumn_' + item.columnName]
+                  displayColumn: scope.row['DisplayColumn_' + item.columnName],
+                  tableIndex: scope.$index,
+                  rowKey: scope.row[keyColumn],
+                  keyColumn: keyColumn
                 }"
                 :record-data-fields="scope.row[item.columnName]"
                 size="mini"
@@ -202,11 +205,13 @@ export default {
       }
     },
     confirmEdit(row, newValue, value) {
-      row.edit = false
-      this.$message({
-        message: 'The title has been edited',
-        type: 'success'
-      })
+      if (row.edit) {
+        row.edit = false
+        this.$message({
+          message: 'The title has been edited',
+          type: 'success'
+        })
+      }
     },
     handleRowClick(row, column, event) {
       if (!row.edit) {
@@ -222,7 +227,7 @@ export default {
       }
     },
     handleRowDblClick(row, column, event) {
-      this.confirmEdit(row)
+      this.confirmEdit(row, null, null)
     },
     handleSelection(rowsSelection, rowSelected) {
       // index.edit = !index.edit

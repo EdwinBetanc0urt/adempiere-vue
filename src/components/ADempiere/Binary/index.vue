@@ -49,12 +49,24 @@ export default {
   },
   methods: {
     handleChange() {
-      this.$store.dispatch('notifyFieldChange', {
-        parentUuid: this.metadata.parentUuid,
-        containerUuid: this.metadata.containerUuid,
-        columnName: this.metadata.columnName,
-        newValue: this.value
-      })
+      if (this.metadata.inTable) {
+        this.$store.dispatch('notifyCellTableChange', {
+          parentUuid: this.metadata.parentUuid,
+          containerUuid: this.metadata.containerUuid,
+          columnName: this.metadata.columnName,
+          newValue: this.value,
+          keyColumn: this.metadata.keyColumn,
+          tableIndex: this.metadata.tableIndex,
+          rowKey: this.metadata.rowKey
+        })
+      } else {
+        this.$store.dispatch('notifyFieldChange', {
+          parentUuid: this.metadata.parentUuid,
+          containerUuid: this.metadata.containerUuid,
+          columnName: this.metadata.columnName,
+          newValue: this.value
+        })
+      }
     },
     handleRemove(file) {
       this.$message.success(`The previously uploaded file has been deleted.`)

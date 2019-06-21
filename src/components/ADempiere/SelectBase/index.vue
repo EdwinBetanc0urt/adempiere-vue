@@ -92,12 +92,12 @@ export default {
       if (typeof this.valueModel !== 'undefined') {
         key = this.valueModel
       }
-      if (typeof this.options.find(option => option.label === this.metadata.displayColumn) === 'undefined') {
-        this.options.push({
-          key: key,
-          label: this.metadata.displayColumn
-        })
-      }
+      // if (typeof this.options.find(option => option.label === this.metadata.displayColumn) === 'undefined') {
+      //   this.options.push({
+      //     key: key,
+      //     label: this.metadata.displayColumn
+      //   })
+      // }
       this.value = key
     }
   },
@@ -134,12 +134,26 @@ export default {
       }
     },
     handleChange() {
-      this.$store.dispatch('notifyFieldChange', {
-        parentUuid: this.metadata.parentUuid,
-        containerUuid: this.metadata.containerUuid,
-        columnName: this.metadata.columnName,
-        newValue: this.value
-      })
+      if (this.metadata.inTable) {
+        var selected = this.options.find(option => option.key === this.value)
+        this.$store.dispatch('notifyCellTableChange', {
+          parentUuid: this.metadata.parentUuid,
+          containerUuid: this.metadata.containerUuid,
+          columnName: this.metadata.columnName,
+          newValue: this.value,
+          keyColumn: this.metadata.keyColumn,
+          tableIndex: this.metadata.tableIndex,
+          rowKey: this.metadata.rowKey,
+          displayColumn: selected.label
+        })
+      } else {
+        this.$store.dispatch('notifyFieldChange', {
+          parentUuid: this.metadata.parentUuid,
+          containerUuid: this.metadata.containerUuid,
+          columnName: this.metadata.columnName,
+          newValue: this.value
+        })
+      }
     },
     remoteMethod() {
       this.loading = true

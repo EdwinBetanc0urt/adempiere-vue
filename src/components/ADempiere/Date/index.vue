@@ -97,13 +97,25 @@ export default {
         valueTo = value[1]
       }
 
-      this.$store.dispatch('notifyFieldChange', {
-        parentUuid: this.metadata.parentUuid,
-        containerUuid: this.metadata.containerUuid,
-        columnName: this.metadata.columnName,
-        newValue: valueFirst,
-        valueTo: valueTo
-      })
+      if (this.metadata.inTable) {
+        this.$store.dispatch('notifyCellTableChange', {
+          parentUuid: this.metadata.parentUuid,
+          containerUuid: this.metadata.containerUuid,
+          columnName: this.metadata.columnName,
+          newValue: this.value,
+          keyColumn: this.metadata.keyColumn,
+          tableIndex: this.metadata.tableIndex,
+          rowKey: this.metadata.rowKey
+        })
+      } else {
+        this.$store.dispatch('notifyFieldChange', {
+          parentUuid: this.metadata.parentUuid,
+          containerUuid: this.metadata.containerUuid,
+          columnName: this.metadata.columnName,
+          newValue: valueFirst,
+          valueTo: valueTo
+        })
+      }
     }
   }
 }

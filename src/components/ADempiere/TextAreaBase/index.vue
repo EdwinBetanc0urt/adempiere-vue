@@ -5,6 +5,7 @@
     :pattern="pattern"
     :placeholder="metadata.help"
     :type-input="typeInput"
+    :rows="rows"
   />
 </template>
 
@@ -30,7 +31,15 @@ export default {
     return {
       value: this.metadata.value,
       typeInput: 'textarea',
-      pattern: undefined
+      pattern: undefined,
+      rows: 5
+    }
+  },
+  created() {
+    if (this.metadata.inTable) {
+      // avoid drastically changing the style of the table
+      // this.typeInput = 'text'
+      this.rows = 1
     }
   },
   beforeMount() {

@@ -17,6 +17,13 @@ const data = {
     deleteRecortContainer(state, payload) {
       state.recordSelection = payload
     },
+    notifyCellTableChange: (state, payload) => {
+      payload.row[payload.columnName] = payload.value
+      if (typeof payload.displayColumn !== 'undefined') {
+        var key = 'DisplayColumn_' + payload.columnName
+        payload.row[key] = payload.displayColumn
+      }
+    },
     setRecentItems(state, payload) {
       state.recentItems = payload
     }
@@ -117,6 +124,21 @@ const data = {
           .catch(error => {
             reject(error)
           })
+      })
+    },
+    notifyCellTableChange: ({ commit, state }, objectParams) => {
+      var recordSelection = state.recordSelection.find(recordItem => {
+        return recordItem.containerUuid === objectParams.containerUuid
+      })
+      var row = recordSelection.record.find(itemRecord => {
+        return itemRecord[objectParams.keyColumn] === objectParams.rowKey
+      })
+      console.log(row)
+      commit('notifyCellTableChange', {
+        row: row,
+        value: objectParams.newValue,
+        columnName: objectParams.columnName,
+        displayColumn: objectParams.displayColumn
       })
     }
   },
