@@ -51,6 +51,9 @@ const browserControl = {
                 map.forEach((value, key) => {
                   values[key] = convertValueFromGRPC(value)
                 })
+
+                // datatables attribute
+                values.edit = false
                 return values
               })
 

@@ -92,12 +92,12 @@ export default {
       if (typeof this.valueModel !== 'undefined') {
         key = this.valueModel
       }
-      // if (typeof this.options.find(option => option.label === this.metadata.displayColumn) === 'undefined') {
-      //   this.options.push({
-      //     key: key,
-      //     label: this.metadata.displayColumn
-      //   })
-      // }
+      if (typeof this.options.find(option => option.key === key) === 'undefined') {
+        this.options.push({
+          key: key,
+          label: this.metadata.displayColumn
+        })
+      }
       this.value = key
     }
   },
