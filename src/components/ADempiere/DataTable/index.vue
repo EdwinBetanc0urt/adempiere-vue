@@ -12,6 +12,11 @@
         clearable
       />
     </div>
+
+    <!--
+      Add this prop to el-table later fix Duplicate keys records
+      :row-key="keyColumn"
+    -->
     <el-table
       ref="multipleTable"
       fit
@@ -20,9 +25,11 @@
       stripe
       border
       highlight-current-row
+      :reserve-selection="true"
       :row-style="rowStyle"
       :data="getDataDetail"
-      @row-dblclick="handleRowClick"
+      @row-click="handleRowClick"
+      @row-dblclick="handleRowDblClick"
       @select="handleSelection"
       @select-all="handleSelectionAll"
     >
@@ -32,6 +39,7 @@
         :prop="keyColumn"
         fixed
         min-width="50"
+        :class-name="'is-cell-selection'"
       />
       <template v-for="(item, key) in fieldList">
         <el-table-column
@@ -41,6 +49,7 @@
           :prop="item.columnName"
           :column-key="item.columnName"
           min-width="150"
+          :class-name="cellClass(item)"
         >
           <template slot-scope="scope">
             <template v-if="scope.row.edit && (item.isIdentifier || item.isUpdateable && !item.isReadOnly)">
@@ -170,6 +179,16 @@ export default {
       }
     },
     /**
+     * @param {object} field
+     */
+    cellClass(field) {
+      if (!(field.isIdentifier || field.isUpdateable && !field.isReadOnly)) {
+        return 'cell-no-edit'
+      }
+      // return 'cell-edit'
+      return undefined
+    },
+    /**
      * Select or unselect rows
      * USE ONLY MOUNTED
      */
@@ -190,20 +209,20 @@ export default {
       })
     },
     handleRowClick(row, column, event) {
-      if (row.edit) {
-        row.edit = false
-        this.$message({
-          message: 'The title has been edited',
-          type: 'success'
-        })
-      } else {
+      if (!row.edit) {
+        /*
         var inSelection = this.getDataSelection.some(item => {
           return JSON.stringify(item) === JSON.stringify(row)
         })
         if (inSelection) {
           row.edit = true
         }
+        */
+        row.edit = true
       }
+    },
+    handleRowDblClick(row, column, event) {
+      this.confirmEdit(row)
     },
     handleSelection(rowsSelection, rowSelected) {
       // index.edit = !index.edit
@@ -324,6 +343,15 @@ export default {
 }
 </script>
 
+<style>
+  /* style in cursor if cell is no edit */
+  .cell-no-edit {
+    cursor: not-allowed !important;
+  }
+  .cell-edit {
+    cursor: pointer !important;
+  }
+</style>
 <style lang="scss" scoped>
   .search-detail {
     font-size: 0 !important;
