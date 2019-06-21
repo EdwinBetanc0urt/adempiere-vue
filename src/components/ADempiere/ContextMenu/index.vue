@@ -232,7 +232,7 @@ export default {
 
 <style>
   .container-context-menu {
-    z-index: 111;
+    z-index: 1;
   }
 
   .container-submenu-mobile{

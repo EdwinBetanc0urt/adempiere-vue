@@ -3,9 +3,9 @@
     <context-menu />
     <el-row :gutter="20">
       <el-col :span="24">
-        <div class="container-report">
+        <div class="content">
           <h3 class="text-center">{{ reportHeader }}</h3>
-          <iframe v-if="reportFormatValue === 'ps'|| reportFormatValue === 'xml'||reportFormatValue === 'pdf' ||reportFormatValue === 'txt' || reportFormatValue === 'ssv' || reportFormatValue === 'csv' || reportFormatValue === 'xls' || reportFormatValue === 'xlsx' || reportFormatValue === 'arxml'" class="content" :src="url" width="100%" height="500" />
+          <iframe v-if="reportFormatValue === 'ps'|| reportFormatValue === 'xml'||reportFormatValue === 'pdf' ||reportFormatValue === 'txt' || reportFormatValue === 'ssv' || reportFormatValue === 'csv' || reportFormatValue === 'xls' || reportFormatValue === 'xlsx' || reportFormatValue === 'arxml'" class="content-api" :src="url" />
           <div v-else-if="reportFormatValue === 'html'" class="content-html">
             <a :href="url" :download="name">
               <el-button icon="el-icon-download">Download File</el-button>
@@ -106,14 +106,25 @@ export default {
 </script>
 
 <style scoped >
-	.ontent {
-		width: 100%;
+	.content {
+    width: 100%;
     height: -webkit-fill-available;
-		padding: 10px;
-	}
+    padding: 10px;
+    position: absolute;
+    top: 0%;
+  }
 	.content-html {
 		width: 100%;
+    height: 100%;
     padding: 10px;
+	}
+  .content-api {
+		width: 100%;
+    height: 100%;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 10px;
+    padding-bottom: 160px;
 	}
   .content-txt{
 		width: 100%;
