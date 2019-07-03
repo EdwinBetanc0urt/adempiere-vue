@@ -80,5 +80,7 @@ export default {
     text-size-adjust: 20px;
     font-size: 100%;
     font-weight: 605!important;
+    padding-right: 12px;
+    float: right;
   }
 </style>

@@ -1,17 +1,19 @@
 <template>
   <div v-if="isLoading">
-    <context-menu
-      :parent-uuid="containerUuid"
-      :parent-panel="panelType"
-    />
-    <modal
-      :visible="isVisisbleDialog"
-      :metadata="processMetadata"
-      :parent-uuid="containerUuid"
-      @closeDialog="isVisisbleDialog=true"
-    />
-    <el-row :gutter="20">
-      <el-col :span="24">
+    <el-container>
+      <el-header>
+        <context-menu
+          :parent-uuid="containerUuid"
+          :parent-panel="panelType"
+        />
+        <modal
+          :visible="isVisisbleDialog"
+          :metadata="processMetadata"
+          :parent-uuid="containerUuid"
+          @closeDialog="isVisisbleDialog=true"
+        />
+      </el-header>
+      <el-main>
         <div class="containert">
           <el-popover
             v-if="!isEmptyValue(browserMetadata.name)"
@@ -36,15 +38,14 @@
             :panel-type="panelType"
           />
         </search-criteria>
-      </el-col>
-      <el-col v-if="isLoading" :span="24">
         <data-table
+          v-if="isLoading"
           :container-uuid="containerUuid"
           :panel-type="panelType"
           :metadata="browserMetadata"
         />
-      </el-col>
-    </el-row>
+      </el-main>
+    </el-container>
   </div>
   <div
     v-else
@@ -178,7 +179,7 @@ export default {
     font-size: 100%;
     font-weight: 605!important;
     position: relative;
-    left: 40%;
+    left: 43%;
   }
   .content-help {
     width: 100%;
