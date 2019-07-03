@@ -5,6 +5,7 @@
       :filterable="true"
       :placeholder="$t('components.filterableItems')"
       multiple
+      size="mini"
       collapse-tags
       value-key="key"
       @change="addField"

@@ -1,29 +1,23 @@
 <template>
-  <el-form :label-position="labelPosition">
+  <el-form :label-position="labelPosition" class="table-root">
     <div class="table-header">
-      <div v-show="isSearchable" :class="{'show-input-seacrh':showSearch}" class="search-detail">
-        <svg-icon class-name="search-icon" icon-class="search" @click.stop="click" @submit.prevent.native="false" />
+      <icon-element v-show="isSearchable" icon="el-icon-search">
         <el-input
-          ref="headerSearchInput"
           v-model="searchTable"
           size="mini"
           :placeholder="$t('table.dataTable.search')"
           class="header-search-input"
           clearable
         />
-      </div>
-      <el-popover
-        placement="top-start"
-        width="300"
-        trigger="hover"
-        class="filter-fields"
-      >
+      </icon-element>
+      <icon-element icon="el-icon-circle-plus">
         <filter-columns
+          ref="headerSearchInput"
           :container-uuid="containerUuid"
           :panel-type="panelType"
+          class="header-search-input"
         />
-        <el-button slot="reference" icon="el-icon-more" type="text" />
-      </el-popover>
+      </icon-element>
     </div>
     <el-table
       ref="multipleTable"
@@ -101,12 +95,14 @@
 import Field from '@/components/ADempiere/Field'
 import Sortable from 'sortablejs'
 import FilterColumns from '@/components/ADempiere/DataTable/filterColumns'
+import IconElement from '@/components/ADempiere/IconElement'
 
 export default {
   name: 'DataTable',
   components: {
     Field,
-    FilterColumns
+    FilterColumns,
+    IconElement
   },
   props: {
     parentUuid: {
@@ -174,13 +170,6 @@ export default {
       if (typeof this.tableName !== 'undefined') {
         this.getData(this.tableName)
       }
-    },
-    showSearch(value) {
-      if (value) {
-        document.body.addEventListener('click', this.close)
-      } else {
-        document.body.removeEventListener('click', this.close)
-      }
     }
   },
   created() {
@@ -192,6 +181,12 @@ export default {
     this.toggleSelection(this.getDataSelection)
   },
   methods: {
+    /**
+     * ASOCIATE WITH SEARCH INPUT
+     */
+    handleChangeInput(value) {
+      this.toggleSelection(this.getDataSelection)
+    },
     async getList() {
       this.oldgetDataDetail = this.getDataDetail.map(v => v.id)
       this.newgetDataDetail = this.oldgetDataDetail.slice()
@@ -221,30 +216,6 @@ export default {
     changeOrder() {
       var reversed = this.getDataDetail.reverse()
       return reversed
-    },
-    /**
-     * ASOCIATE WITH SEARCH INPUT
-     */
-    handleChangeInput(value) {
-      this.toggleSelection(this.getDataSelection)
-    },
-    click() {
-      if (this.searchTable.trim().length > 0) {
-        this.showSearch = true
-      } else {
-        this.showSearch = !this.showSearch
-      }
-      if (this.showSearch) {
-        this.$refs.headerSearchInput && this.$refs.headerSearchInput.focus()
-      }
-    },
-    close() {
-      if (this.searchTable.trim().length > 0) {
-        this.showSearch = true
-      } else {
-        this.$refs.headerSearchInput && this.$refs.headerSearchInput.blur()
-        this.showSearch = false
-      }
     },
     /**
      * @param {object} field
@@ -431,62 +402,28 @@ export default {
   }
 </style>
 <style lang="scss" scoped>
-  .table-footer {
-    bottom: 0px;
-    text-align: right;
-    padding: 10px;
-  }
+  .table-root {
+    background-color: #f5f7fa;
 
-  .datatable-max-cell-height {
-    max-height: 52px;
-  }
+    .datatable-max-cell-height {
+      max-height: 52px;
+    }
 
-  .table-header {
-    text-align: right;
-    // position: fixed;
-    // display: inline-block;
-    // float: right;
-    // line-height: 25px;
-    .search-detail {
-      font-size: 0 !important;
-      width: 98%;
-      .search-icon {
-        cursor: pointer;
-        font-size: 18px;
-        color: #000;
-        position: absolute;
-        vertical-align: middle;
-      }
-      .container-table {
-        width: 100%;
-        height: 90%;
-      }
-      .header-search-input {
-        font-size: 12px;
-        transition: width 0.2s;
-        width: 0;
-        overflow: hidden;
-        background: transparent;
-        border-radius: 0;
-        display: inline-block;
-        vertical-align: middle;
-
-        /deep/ .el-input__inner {
-          border-radius: 0;
-          border: 0;
-          padding-left: 0;
-          padding-right: 0;
-          box-shadow: none !important;
-          border-bottom: 1px solid #d9d9d9;
-          vertical-align: middle;
-        }
-      }
-      &.show-input-seacrh {
-        .header-search-input {
-          width: 200px;
-          margin-left: 22px;
-        }
-      }
+    .table-header {
+      text-align: right;
+      padding: 5px;
+      width: 100%;
+      border: 1px solid transparent;
+      // position: fixed;
+      // display: inline-block;
+      // float: right;
+      // line-height: 25px;
+    }
+    .table-footer {
+      bottom: 0px;
+      text-align: right;
+      padding: 10px;
     }
   }
+
 </style>
