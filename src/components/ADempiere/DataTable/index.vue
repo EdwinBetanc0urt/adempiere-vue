@@ -1,15 +1,29 @@
 <template>
   <el-form :label-position="labelPosition">
-    <div v-show="isSearchable" :class="{'show-input-seacrh':showSearch}" class="search-detail" align="right">
-      <svg-icon class-name="search-icon" icon-class="search" @click.stop="click" @submit.prevent.native="false" />
-      <el-input
-        ref="headerSearchInput"
-        v-model="searchTable"
-        size="mini"
-        :placeholder="$t('table.dataTable.search')"
-        class="header-search-input"
-        clearable
-      />
+    <div class="table-header">
+      <div v-show="isSearchable" :class="{'show-input-seacrh':showSearch}" class="search-detail">
+        <svg-icon class-name="search-icon" icon-class="search" @click.stop="click" @submit.prevent.native="false" />
+        <el-input
+          ref="headerSearchInput"
+          v-model="searchTable"
+          size="mini"
+          :placeholder="$t('table.dataTable.search')"
+          class="header-search-input"
+          clearable
+        />
+      </div>
+      <el-popover
+        placement="top-start"
+        width="300"
+        trigger="hover"
+        class="filter-fields"
+      >
+        <filter-columns
+          :container-uuid="containerUuid"
+          :panel-type="panelType"
+        />
+        <el-button slot="reference" icon="el-icon-more" type="text" />
+      </el-popover>
     </div>
     <el-table
       ref="multipleTable"
@@ -86,11 +100,13 @@
 <script>
 import Field from '@/components/ADempiere/Field'
 import Sortable from 'sortablejs'
+import FilterColumns from '@/components/ADempiere/DataTable/filterColumns'
 
 export default {
   name: 'DataTable',
   components: {
-    Field
+    Field,
+    FilterColumns
   },
   props: {
     parentUuid: {
@@ -338,7 +354,7 @@ export default {
      * Verify is displayed field in column table
      */
     isDisplayed(field) {
-      var isDisplayed = field.isDisplayed && field.isDisplayedFromLogic
+      var isDisplayed = field.isDisplayed && field.isDisplayedFromLogic && field.isShowedTableFromUser
       //  Verify for displayed and is active
       return field.isActive && isDisplayed
     },
@@ -425,44 +441,51 @@ export default {
     max-height: 52px;
   }
 
-  .search-detail {
-    font-size: 0 !important;
-    width: 98%;
-    .search-icon {
-      cursor: pointer;
-      font-size: 18px;
-      color: #000;
-      position: absolute;
-      vertical-align: middle;
-    }
-    .container-table {
-      width: 100%;
-      height: 90%;
-    }
-    .header-search-input {
-      font-size: 12px;
-      transition: width 0.2s;
-      width: 0;
-      overflow: hidden;
-      background: transparent;
-      border-radius: 0;
-      display: inline-block;
-      vertical-align: middle;
-
-      /deep/ .el-input__inner {
-        border-radius: 0;
-        border: 0;
-        padding-left: 0;
-        padding-right: 0;
-        box-shadow: none !important;
-        border-bottom: 1px solid #d9d9d9;
+  .table-header {
+    text-align: right;
+    // position: fixed;
+    // display: inline-block;
+    // float: right;
+    // line-height: 25px;
+    .search-detail {
+      font-size: 0 !important;
+      width: 98%;
+      .search-icon {
+        cursor: pointer;
+        font-size: 18px;
+        color: #000;
+        position: absolute;
         vertical-align: middle;
       }
-    }
-    &.show-input-seacrh {
+      .container-table {
+        width: 100%;
+        height: 90%;
+      }
       .header-search-input {
-        width: 200px;
-        margin-left: 22px;
+        font-size: 12px;
+        transition: width 0.2s;
+        width: 0;
+        overflow: hidden;
+        background: transparent;
+        border-radius: 0;
+        display: inline-block;
+        vertical-align: middle;
+
+        /deep/ .el-input__inner {
+          border-radius: 0;
+          border: 0;
+          padding-left: 0;
+          padding-right: 0;
+          box-shadow: none !important;
+          border-bottom: 1px solid #d9d9d9;
+          vertical-align: middle;
+        }
+      }
+      &.show-input-seacrh {
+        .header-search-input {
+          width: 200px;
+          margin-left: 22px;
+        }
       }
     }
   }

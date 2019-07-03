@@ -44,6 +44,14 @@ const panel = {
         return item
       })
     },
+    changeColumnShowedFromUser(state, payload) {
+      state = state.panel.map(item => {
+        if (payload.containerUuid === item.containerUuid) {
+          return payload.newPanel
+        }
+        return item
+      })
+    },
     changeFieldValue(state, payload) {
       payload.field.oldValue = payload.field.value
       payload.field.value = payload.newValue
@@ -114,6 +122,22 @@ const panel = {
           clearSelection: true
         })
       }
+    },
+    changeColumnShowedFromUser({ commit, getters }, params) {
+      var panel = getters.getPanel(params.containerUuid)
+      var newFields = panel.fieldList.map((itemField) => {
+        if (params.fieldsUser.length > 0 && params.fieldsUser.indexOf(itemField.columnName) !== -1) {
+          itemField.isShowedTableFromUser = true
+          return itemField
+        }
+        itemField.isShowedTableFromUser = false
+        return itemField
+      })
+      panel.fieldList = newFields
+      commit('changeColumnShowedFromUser', {
+        containerUuid: params.containerUuid,
+        newPanel: panel
+      })
     },
     notifyPanelChange({ state, dispatch }, params) {
       state.panel

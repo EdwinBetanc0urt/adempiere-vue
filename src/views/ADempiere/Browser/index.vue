@@ -37,10 +37,11 @@
           />
         </search-criteria>
       </el-col>
-      <el-col :span="24">
+      <el-col v-if="isLoading" :span="24">
         <data-table
           :container-uuid="containerUuid"
           :panel-type="panelType"
+          :metadata="browserMetadata"
         />
       </el-col>
     </el-row>

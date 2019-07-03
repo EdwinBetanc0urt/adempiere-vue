@@ -49,6 +49,7 @@ export function convertValueFromGRPC(initialValue) {
 export function convertFieldFromGRPC(fieldGRPC, moreAttributes = {}, typeRange = false) {
   var group = {}
   var isShowedFromUser = false
+
   try {
     group = {
       name: fieldGRPC.getFieldgroup().getName(),
@@ -169,8 +170,10 @@ export function convertFieldFromGRPC(fieldGRPC, moreAttributes = {}, typeRange =
       fieldGRPC.getContextinfo()
     ),
     // TODO: Add support on server
+    // app attributes
     isShowedFromUser: isShowedFromUser
   }
+  field.isShowedTableFromUser = field.isDisplayed && field.isDisplayedFromLogic
 
   // Overwrite some values
   if (typeRange) {

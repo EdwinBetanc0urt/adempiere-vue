@@ -1,7 +1,6 @@
 <template>
   <div v-if="isLoading">
     <context-menu
-      class="sticky-submenu"
       :parent-uuid="containerUuid"
       :parent-panel="panelType"
       :report="reportMetadata.isReport"
@@ -13,6 +12,7 @@
         </h2>
         <code v-show="checkValue(reportMetadata.help)" v-html="reportMetadata.help" />
         <panel
+          v-if="isLoading"
           :position-tab="reportMetadata.accesLevel"
           :container-uuid="containerUuid"
           :metadata-tab="reportMetadata"

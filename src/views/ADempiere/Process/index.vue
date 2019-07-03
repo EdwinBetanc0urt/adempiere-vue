@@ -23,6 +23,7 @@
             <el-button v-if="isEmptyValue(processMetadata.help)" slot="reference" type="text" class="title">{{ processMetadata.name }}</el-button>
           </h3>
           <panel
+            v-if="isLoading"
             :position-tab="processMetadata.accesLevel"
             :container-uuid="processUuid"
             :metadata="processMetadata"
