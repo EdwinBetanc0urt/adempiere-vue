@@ -1,18 +1,25 @@
 <template>
-  <el-dropdown trigger="click">
-    <el-button type="text" :disabled="fieldAttributes.readonly" @click="focusCalc">
+  <el-dropdown trigger="click" @visible-change="focusCalc">
+    <el-button type="text" :disabled="fieldAttributes.readonly">
       <i class="el-icon-s-operation el-icon--right" />
     </el-button>
-    <el-dropdown-menu slot="dropdown" class="dropdown-calc">
+    <el-dropdown-menu
+      slot="dropdown"
+      class="dropdown-calc"
+    >
       <el-input
         ref="calculatorInput"
         v-model="calcValue"
         v-shortkey="['enter']"
         class="calc-input"
+        clearable
+        @input="validateInput"
         @keydown.native="calculateValue"
         @shortkey.native="changeValue"
       >
-        <template slot="append">{{ valueToDisplay }}</template>
+        <template slot="append">
+          {{ valueToDisplay }}
+        </template>
       </el-input>
       <el-table
         ref="calculator"
@@ -31,7 +38,9 @@
           width="50"
         >
           <template slot-scope="{ row, column }">
-            <el-button type="text" :disabled="isDisabled(row, column)">{{ row.row1.value }}</el-button>
+            <el-button type="text" :disabled="isDisabled(row, column)">
+              {{ row.row1.value }}
+            </el-button>
           </template>
         </el-table-column>
         <el-table-column
@@ -41,7 +50,9 @@
           width="50"
         >
           <template slot-scope="{ row, column }">
-            <el-button type="text" :disabled="isDisabled(row, column)">{{ row.row2.value }}</el-button>
+            <el-button type="text" :disabled="isDisabled(row, column)">
+              {{ row.row2.value }}
+            </el-button>
           </template>
         </el-table-column>
         <el-table-column
@@ -51,7 +62,9 @@
           width="50"
         >
           <template slot-scope="{ row, column }">
-            <el-button type="text" :disabled="isDisabled(row, column)">{{ row.row3.value }}</el-button>
+            <el-button type="text" :disabled="isDisabled(row, column)">
+              {{ row.row3.value }}
+            </el-button>
           </template>
         </el-table-column>
         <el-table-column
@@ -61,7 +74,9 @@
           width="50"
         >
           <template slot-scope="{ row, column }">
-            <el-button type="text" :disabled="isDisabled(row, column)">{{ row.row4.value }}</el-button>
+            <el-button type="text" :disabled="isDisabled(row, column)">
+              {{ row.row4.value }}
+            </el-button>
           </template>
         </el-table-column>
         <el-table-column
@@ -71,7 +86,9 @@
           width="50"
         >
           <template slot-scope="{ row, column }">
-            <el-button type="text" :disabled="isDisabled(row, column)">{{ row.row5.value }}</el-button>
+            <el-button type="text" :disabled="isDisabled(row, column)">
+              {{ row.row5.value }}
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -213,7 +230,17 @@ export default {
     sendValue(row, column) {
       const isAcceptedType = ['result', 'clear'].includes(row[column.property].type)
       if (!isAcceptedType && !this.isDisabled(row, column)) {
-        this.isEmptyValue(this.calcValue) ? this.calcValue = row[column.property].value : this.calcValue += row[column.property].value
+        if (this.isEmptyValue(this.calcValue)) {
+          this.calcValue = row[column.property].value
+        } else {
+          const { selectionStart, selectionEnd } = this.$refs.calculatorInput.$refs.input
+          let text = row[column.property].value // char clicked
+          // separate positions
+          const firstText = String(this.calcValue).slice(0, selectionStart)
+          const secondText = String(this.calcValue).slice(selectionEnd)
+          text = firstText.concat(text).concat(secondText) // insert char clicked
+          this.calcValue = text
+        }
         const result = this.calculationValue(this.calcValue, event)
         if (!this.isEmptyValue(result)) {
           this.valueToDisplay = result
@@ -223,7 +250,25 @@ export default {
       }
       if (row[column.property].type === 'clear') {
         if (row[column.property].value === 'C') {
-          this.calcValue = this.calcValue.slice(0, -1)
+          let { selectionStart, selectionEnd } = this.$refs.calculatorInput.$refs.input
+          if (selectionStart === String(this.calcValue).length) {
+            // cursor in end line, without selection
+            selectionStart = 0
+            selectionEnd = -1
+            this.calcValue = String(this.calcValue).slice(selectionStart, selectionEnd)
+          } else if (selectionStart === selectionEnd) {
+            // cursor into line without selection
+            selectionStart--
+            const firstText = String(this.calcValue).slice(0, selectionStart)
+            const secondText = String(this.calcValue).slice(selectionEnd)
+            this.calcValue = firstText.concat(secondText)
+          } else {
+            // cursor with selection
+            const firstText = String(this.calcValue).slice(0, selectionStart)
+            const secondText = String(this.calcValue).slice(selectionEnd)
+            this.calcValue = firstText.concat(secondText)
+          }
+          this.valueToDisplay = this.calcValue
         } else if (row[column.property].value === 'AC') {
           this.calcValue = ''
           this.valueToDisplay = ''
@@ -233,16 +278,23 @@ export default {
         this.changeValue()
       }
     },
+    validateInput(value) {
+      this.calcValue = String(value)
+        .replace(/[^0-9.+*\-\/%=]/g, '')
+    },
     changeValue() {
-      const newValue = Number(this.valueToDisplay)
+      let newValue
+      if (!this.isEmptyValue(this.valueToDisplay)) {
+        newValue = Number(this.valueToDisplay)
+      }
+
       let isSendCallout = true
       const isSendToServer = true
-      const isChangedOldValue = false
       if (this.fieldAttributes.isAdvancedQuery) {
         isSendCallout = false
       }
 
-      const sendParameters = {
+      this.$store.dispatch('notifyFieldChange', {
         parentUuid: this.fieldAttributes.parentUuid,
         containerUuid: this.fieldAttributes.containerUuid,
         field: this.fieldAttributes,
@@ -251,14 +303,10 @@ export default {
         newValue,
         isAdvancedQuery: this.fieldAttributes.isAdvancedQuery,
         isSendToServer,
-        isSendCallout,
-        isChangedOldValue
-      }
-      this.$store.dispatch('notifyFieldChange', {
-        ...sendParameters
+        isSendCallout
       })
         .finally(() => {
-          this.clearVariables()
+          // hidden calc dropdown
           this.$children[0].visible = false
         })
     },
@@ -307,23 +355,27 @@ export default {
       return false
     },
     calculateValue(event) {
-      const result = this.calculationValue(this.fieldValue, event)
-      if (!this.isEmptyValue(result)) {
-        this.valueToDisplay = result
-      } else {
-        this.valueToDisplay = '...'
+      let result = this.calculationValue(this.fieldValue, event)
+      if (this.isEmptyValue(result)) {
+        result = '...'
       }
+      this.valueToDisplay = result
     },
-    focusCalc() {
-      this.$refs.calculatorInput.focus()
+    focusCalc(isShowed) {
+      if (isShowed) {
+        this.calcValue = this.fieldValue
+        this.valueToDisplay = this.calcValue
+        this.$refs.calculatorInput.focus()
+      }
     }
   }
 }
 </script>
+
 <style>
-	.el-table--enable-row-hover .el-table__body tr:hover > td {
-		background-color: #ffffff !important;
-	}
+  .el-table--enable-row-hover .el-table__body tr:hover > td {
+    background-color: #ffffff !important;
+  }
   .calc-table .el-table__body-wrapper > table {
     border-spacing: 5px;
   }

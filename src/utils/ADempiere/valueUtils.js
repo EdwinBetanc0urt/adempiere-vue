@@ -6,7 +6,8 @@
  * @returns {boolean}
  */
 export function isEmptyValue(value) {
-  if (value === undefined || value == null) {
+  // eslint-disable-next-line use-isnan
+  if (value === undefined || value == null || value === NaN) {
     return true
   } else if (String(value).trim() === '-1') {
     return true
@@ -167,6 +168,7 @@ export function convertFieldListToShareLink(fieldList) {
 
   return attributesListLink.slice(0, -1)
 }
+
 /**
  * Find element in an array recursively
  * @param {object|array} treeData
@@ -339,6 +341,7 @@ export function parsedValueComponent({
   }
   return returnValue
 }
+
 /**
  * add a tab depending on the status of the document
  * @param {string} tag, document status key
@@ -386,45 +389,56 @@ export function tagStatus(tag) {
   return type
 }
 
-let partialValue = ''
+export const operationPattern = /[\d\/.()%\*\+\-]/
+
+/**
+ * Insert char in positions text
+ * @param {number/string} value
+ * @param {number/string} char
+ * @param {number} selectionStart
+ * @param {number} selectionEnd
+ */
+export function charInText({ value, char, selectionStart, selectionEnd }) {
+  if (operationPattern.test(char)) {
+    // separate positions
+    const firstText = String(value).slice(0, selectionStart)
+    const secondText = String(value).slice(selectionEnd)
+    const text = firstText.concat(char).concat(secondText) // insert char clicked
+    console.log(text)
+    return text
+  }
+  return null
+}
+
 export function calculationValue(value, event) {
-  const isZero = Number(value) === 0
-  const VALIDATE_EXPRESSION = /[\d\/.()%\*\+\-]/gim
-  const isValidKey = VALIDATE_EXPRESSION.test(event.key)
-  if (event.type === 'keydown' && isValidKey) {
-    partialValue += event.key
-    const operation = isEmptyValue(value) || isZero ? partialValue : String(value) + partialValue
-    if (!isEmptyValue(operation)) {
-      try {
-        // eslint-disable-next-line no-eval
-        return eval(operation) + ''
-      } catch (error) {
-        return null
-      }
-    }
-  } else if (event.type === 'click') {
-    if (!isEmptyValue(value)) {
-      try {
-        // eslint-disable-next-line no-eval
-        return eval(value) + ''
-      } catch (error) {
-        return null
-      }
-    }
-  } else {
-    if ((event.key === 'Backspace' || event.key === 'Delete') && !isEmptyValue(value)) {
-      try {
-        // eslint-disable-next-line no-eval
-        return eval(value) + ''
-      } catch (error) {
-        return null
-      }
-    } else {
+  const evalOperation = (value) => {
+    try {
+      // eslint-disable-next-line no-eval
+      return eval(value) + ''
+    } catch (error) {
       return null
     }
   }
-}
+  const isDeleteKey = ['Backspace', 'Delete'].includes(event.key)
 
-export function clearVariables() {
-  partialValue = ''
+  if (event.type === 'keydown') {
+    const { selectionStart, selectionEnd } = event.target
+    const operation = charInText({ value: event.target.value, char: event.key, selectionStart, selectionEnd })
+    // if (isDeleteKey) {
+    //   operation = event.target.value
+    // }
+    if (!isEmptyValue(operation)) {
+      console.log('operation', operation)
+      return evalOperation(operation)
+    }
+  } else if (event.type === 'click') {
+    if (!isEmptyValue(value)) {
+      return evalOperation(value)
+    }
+  } else {
+    if (isDeleteKey && !isEmptyValue(value)) {
+      return evalOperation(value)
+    }
+    return null
+  }
 }

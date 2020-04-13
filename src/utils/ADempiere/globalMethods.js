@@ -3,6 +3,5 @@ export {
   isEmptyValue,
   zeroPad,
   tagStatus,
-  calculationValue,
-  clearVariables
+  calculationValue
 } from '@/utils/ADempiere/valueUtils.js'

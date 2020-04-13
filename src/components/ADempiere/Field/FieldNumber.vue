@@ -1,5 +1,11 @@
 <template>
-  <el-tooltip v-model="isShowed" :manual="true" :content="valueToDisplay" placement="top" effect="light">
+  <el-tooltip
+    v-model="isShowed"
+    :manual="true"
+    :content="valueToDisplay"
+    placement="top"
+    effect="light"
+  >
     <el-input-number
       :ref="metadata.columnName"
       v-model="value"
@@ -14,7 +20,8 @@
       :class="'display-type-' + cssClass"
       @change="preHandleChange"
       @shortkey.native="changeValue"
-      @blur="changeValue"
+      @blur="isShowed = false"
+      @input.native="validateInput"
       @keydown.native="calculateValue"
     />
   </el-tooltip>
@@ -23,6 +30,7 @@
 <script>
 import { fieldMixin } from '@/components/ADempiere/Field/FieldMixin'
 import { FIELDS_DECIMALS } from '@/components/ADempiere/Field/references'
+// import { operationPattern } from '@/utils/ADempiere/valueUtils.js'
 
 export default {
   name: 'FieldNumber',
@@ -35,11 +43,8 @@ export default {
     }
     value = this.validateValue(value)
     return {
-      value: value,
-      showControls: true,
-      operation: '',
-      expression: /[\d\/.()%\*\+\-]/gim,
-      valueToDisplay: '',
+      value,
+      valueToDisplay: typeof value === 'number' ? String(value) : '',
       isShowed: false
     }
   },
@@ -59,10 +64,11 @@ export default {
     cssClass() {
       return this.metadata.referenceType
         .split(/(?=[A-Z])/)
-        .join('-').toLowerCase()
+        .join('-')
+        .toLowerCase()
     },
     precision() {
-      // Amount, Costs+Prices, Number
+      // Amount, Costs+Prices, Number, Quantity
       if (FIELDS_DECIMALS.includes(this.metadata.referenceType)) {
         return 2
       }
@@ -84,60 +90,75 @@ export default {
   },
   methods: {
     validateValue(value) {
-      if (this.isEmptyValue(value) || isNaN(value)) {
+      if (this.isEmptyValue(value)) {
         return undefined
       }
       return Number(value)
     },
     calculateValue(event) {
-      const isAllowed = event.key.match(this.expression)
+      const result = this.calculationValue(this.value, event)
+      if (!this.isEmptyValue(result)) {
+        this.valueToDisplay = result
+      } else {
+        this.valueToDisplay = '...'
+      }
+      this.isShowed = true
+
+      /**
+      const isAllowed = event.key.match(oeprationPattern)
       if (isAllowed) {
         const result = this.calculationValue(this.value, event)
         if (!this.isEmptyValue(result)) {
           this.valueToDisplay = result
-          this.isShowed = true
         } else {
           this.valueToDisplay = '...'
-          this.isShowed = true
         }
-      } else if (!isAllowed && event.key === 'Backspace') {
-        if (String(this.value).slice(0, -1) > 0) {
-          event.preventDefault()
-          const newValue = String(this.value).slice(0, -1)
-          const result = this.calculationValue(newValue, event)
-          if (!this.isEmptyValue(result)) {
-            this.value = this.validateValue(result)
-            this.valueToDisplay = result
-            this.isShowed = true
-          } else {
-            this.valueToDisplay = '...'
-            this.isShowed = true
-          }
-        }
-      } else if (!isAllowed && event.key === 'Delete') {
-        if (String(this.value).slice(-1) > 0) {
-          event.preventDefault()
-          const newValue = String(this.value).slice(-1)
-          const result = this.calculationValue(newValue, event)
-          if (!this.isEmptyValue(result)) {
-            this.value = this.validateValue(result)
-            this.valueToDisplay = result
-            this.isShowed = true
-          } else {
-            this.valueToDisplay = '...'
-            this.isShowed = true
-          }
-        }
+        this.isShowed = true
       } else {
-        event.preventDefault()
+        const { selectionStart, selectionEnd } = event.target
+        if (event.key === 'Backspace') {
+          const newValue = this.deleteChar({ value: this.value, selectionStart, selectionEnd })
+          if (newValue > 0) {
+            event.preventDefault()
+            const result = this.calculationValue(newValue, event)
+            if (!this.isEmptyValue(result)) {
+              this.value = this.validateValue(result)
+              this.valueToDisplay = result
+            } else {
+              this.valueToDisplay = '...'
+            }
+            this.isShowed = true
+          }
+        } else if (event.key === 'Delete') {
+          const newValue = this.deleteChar({ value: this.value, selectionStart, selectionEnd, isReverse: false })
+          if (String(this.value).slice(-1) > 0) {
+            event.preventDefault()
+            const newValue = String(this.value).slice(-1)
+            const result = this.calculationValue(newValue, event)
+            if (!this.isEmptyValue(result)) {
+              this.value = this.validateValue(result)
+              this.valueToDisplay = result
+            } else {
+              this.valueToDisplay = '...'
+            }
+            this.isShowed = true
+          }
+        } else {
+          event.preventDefault()
+        }
       }
+      */
+    },
+    validateInput(event) {
+      const value = String(event.target.value)
+        .replace(/[^\d\/.()%\*\+\-]/, '')
+      this.value = value
     },
     changeValue() {
       if (!this.isEmptyValue(this.valueToDisplay) && this.valueToDisplay !== '...') {
         const result = this.validateValue(this.valueToDisplay)
         this.preHandleChange(result)
       }
-      this.clearVariables()
       this.isShowed = false
     }
   }
