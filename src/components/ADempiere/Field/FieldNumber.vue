@@ -9,7 +9,6 @@
     <el-input-number
       :ref="metadata.columnName"
       v-model="value"
-      v-shortkey="['enter']"
       type="number"
       :min="minValue"
       :max="maxValue"
@@ -17,19 +16,20 @@
       :disabled="isDisabled"
       :precision="precision"
       controls-position="right"
-      :class="'display-type-' + cssClass"
+      :class="'display-type-amount'"
       @change="preHandleChange"
       @shortkey.native="changeValue"
       @blur="isShowed = false"
       @input.native="validateInput"
       @keydown.native="calculateValue"
+      @keyup.enter.native="changeValue"
     />
   </el-tooltip>
 </template>
 
 <script>
 import { fieldMixin } from '@/components/ADempiere/Field/FieldMixin'
-import { FIELDS_DECIMALS } from '@/components/ADempiere/Field/references'
+import { FIELDS_DECIMALS } from '@/utils/ADempiere/references'
 // import { operationPattern } from '@/utils/ADempiere/valueUtils.js'
 
 export default {

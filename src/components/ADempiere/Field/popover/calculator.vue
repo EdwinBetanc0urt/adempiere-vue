@@ -10,12 +10,11 @@
       <el-input
         ref="calculatorInput"
         v-model="calcValue"
-        v-shortkey="['enter']"
         class="calc-input"
         clearable
         @input="validateInput"
         @keydown.native="calculateValue"
-        @shortkey.native="changeValue"
+        @keyup.enter.native="changeValue"
       >
         <template slot="append">
           {{ valueToDisplay }}
