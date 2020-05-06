@@ -8,12 +8,13 @@ const state = {
   showSettings: showSettings,
   tagsView: tagsView,
   fixedHeader: fixedHeader,
+  showContextMenu: true,
   sidebarLogo: sidebarLogo
 }
 
 const mutations = {
   CHANGE_SETTING: (state, { key, value }) => {
-    if (state.hasOwnProperty(key)) {
+    if (Object.prototype.hasOwnProperty.call(state, key)) {
       state[key] = value
     }
   }
@@ -31,4 +32,3 @@ export default {
   mutations,
   actions
 }
-

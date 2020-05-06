@@ -1,6 +1,14 @@
 <template>
-  <el-container v-if="isLoadedMetadata" key="process-loaded" class="view-base" style="height: 84vh;">
-    <el-header style="height: 39px;">
+  <el-container
+    v-if="isLoadedMetadata"
+    key="process-loaded"
+    class="view-base"
+    style="height: 84vh;"
+  >
+    <el-header
+      v-if="showContextMenu"
+      style="height: 39px;"
+    >
       <context-menu
         :menu-parent-uuid="$route.meta.parentUuid"
         :container-uuid="processUuid"
@@ -12,20 +20,22 @@
       <el-row :gutter="20">
         <el-col :span="24">
           <el-card class="content-collapse">
-            <h3 v-show="!isEmptyValue(processMetadata.name)" class="warn-content text-center">
+            <h3 v-show="!isEmptyValue(processTitle)" class="warn-content text-center">
               <el-popover
                 v-if="!isEmptyValue(processMetadata.help)"
+                ref="helpTitle"
                 placement="top-start"
-                :title="processMetadata.name"
+                :title="processTitle"
                 width="400"
                 trigger="hover"
               >
                 <div v-html="processMetadata.help" />
-                <el-button slot="reference" type="text" class="title">
-                  {{ processMetadata.name }}
-                </el-button>
               </el-popover>
-              <el-button v-if="isEmptyValue(processMetadata.help)" slot="reference" type="text" class="title text-center">
+              <el-button
+                v-popover:helpTitle
+                type="text"
+                class="title text-center"
+              >
                 {{ processMetadata.name }}
               </el-button>
             </h3>
@@ -79,8 +89,14 @@ export default {
     }
   },
   computed: {
+    showContextMenu() {
+      return this.$store.state.settings.showContextMenu
+    },
     getterProcess() {
       return this.$store.getters.getPanel(this.processUuid)
+    },
+    processTitle() {
+      return this.processMetadata.name || this.$route.meta.title
     }
   },
   created() {
@@ -88,16 +104,17 @@ export default {
   },
   methods: {
     getProcess() {
-      if (this.getterProcess) {
-        this.processMetadata = this.getterProcess
+      const process = this.getterProcess
+      if (process) {
+        this.processMetadata = process
         this.isLoadedMetadata = true
       } else {
         this.$store.dispatch('getPanelAndFields', {
           containerUuid: this.processUuid,
           panelType: this.panelType,
           routeToDelete: this.$route
-        }).then(() => {
-          this.processMetadata = this.getterProcess
+        }).then(processResponse => {
+          this.processMetadata = processResponse
         }).finally(() => {
           this.isLoadedMetadata = true
         })

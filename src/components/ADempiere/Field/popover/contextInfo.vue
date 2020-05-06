@@ -1,7 +1,6 @@
 <template>
   <span>
     <el-popover
-      v-if="(fieldAttributes.contextInfo && fieldAttributes.contextInfo.isActive) || fieldAttributes.reference.zoomWindowList.length"
       ref="contextInfoField"
       placement="top"
       width="300"
@@ -15,11 +14,9 @@
         <span class="custom-tittle-popover">
           {{ fieldAttributes.name }}
         </span>
-        <template v-if="!isEmptyValue(fieldAttributes.help)">
-          : {{ fieldAttributes.help }}
-        </template>
+        {{ fieldAttributes.help }}
       </div>
-      <template v-for="(zoomItem, index) in fieldAttributes.reference.zoomWindowList">
+      <template v-for="(zoomItem, index) in fieldAttributes.reference.windowsList">
         <el-button
           :key="index"
           type="text"

@@ -40,7 +40,7 @@
         {{ $t('login.submit') }}
       </el-button>
 
-      <el-button type="text" style="float: left" @click.native.prevent="$router.push({ path: 'login' })">
+      <el-button type="text" style="float: left" @click.native.prevent="pathRedirect('login')">
         {{ $t('login.title') }}
       </el-button>
     </el-form>
@@ -48,11 +48,15 @@
 </template>
 
 <script>
-import LangSelect from '@/components/LangSelect'
+import { loginMixin } from '@/views/login/loginMixin'
+import router from '@/router'
+import { showMessage } from '@/utils/ADempiere/notification'
+import language from '@/lang'
+import { forgotPassword } from '@/api/ADempiere/enrollment'
 
 export default {
   name: 'ForgotPassword',
-  components: { LangSelect },
+  mixins: [loginMixin],
   data() {
     return {
       forgotForm: {
@@ -65,18 +69,34 @@ export default {
     }
   },
   methods: {
-    showPwd() {
-      this.$nextTick(() => {
-        this.$refs.userName.focus()
-      })
-    },
     handleSubmit() {
       if (!this.isEmptyValue(this.forgotForm.userName)) {
         this.loading = true
-        this.$store.dispatch('forgotPassword', this.forgotForm.userName)
-          .finally(() => {
-            this.loading = false
+        forgotPassword(this.forgotForm.userName)
+          .then(forgotPasswordResponse => {
+            if (forgotPasswordResponse.responseTypeStatus === 'OK') {
+              showMessage({
+                message: language.t('login.passwordResetSendLink') + this.forgotForm.userName,
+                type: 'success'
+              })
+              router.push({
+                path: 'login'
+              })
+            } else {
+              showMessage({
+                message: language.t('login.unexpectedError'),
+                type: 'error'
+              })
+            }
           })
+          .catch(error => {
+            showMessage({
+              message: language.t('login.unexpectedError'),
+              type: 'error'
+            })
+            console.warn(`Forgot Password - Error ${error.code}: ${error.message}`)
+          })
+          .finally(this.loading = false)
       }
     }
   }

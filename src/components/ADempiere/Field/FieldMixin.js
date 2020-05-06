@@ -7,7 +7,7 @@ export const fieldMixin = {
     },
     // value received from data result
     valueModel: {
-      type: [String, Number, Boolean, Date, Array],
+      type: [String, Number, Boolean, Date, Array, Object],
       default: null
     }
   },
@@ -22,24 +22,23 @@ export const fieldMixin = {
     }
   },
   computed: {
-    getterValue() {
-      const field = this.$store.getters.getFieldFromColumnName({
-        containerUuid: this.metadata.containerUuid,
-        columnName: this.metadata.columnName,
-        isAdvancedQuery: this.metadata.isAdvancedQuery
-      })
-      if (field) {
-        return field.value
-      }
-      return undefined
-    },
     isDisabled() {
       return Boolean(this.metadata.readonly || this.metadata.disabled)
     }
   },
+  async created() {
+    if (this.metadata.isSQLValue && (this.isEmptyValue(this.metadata.value) || this.metadata.value.isSQL || isNaN(this.metadata.value))) {
+      const value = await this.$store.dispatch('getValueBySQL', {
+        parentUuid: this.metadata.parentUuid,
+        containerUuid: this.metadata.containerUuid,
+        query: this.metadata.defaultValue
+      })
+      this.preHandleChange(value)
+    }
+  },
   methods: {
     activeFocus() {
-      if (this.metadata.isUpdateable) {
+      if (this.$refs[this.metadata.columnName]) {
         this.$refs[this.metadata.columnName].focus()
       }
     },
@@ -50,6 +49,62 @@ export const fieldMixin = {
      */
     preHandleChange(value) {
       this.handleChange(value)
+    },
+    focusGained(value) {
+      if (this.metadata.isAutoSelection) {
+        // select all the content inside the text box
+        if (!this.isEmptyValue(value.target.selectionStart) &&
+          !this.isEmptyValue(value.target.selectionStart)) {
+          value.target.selectionStart = 0
+          value.target.selectionEnd = value.target.value.length
+        }
+      }
+      if (this.metadata.handleFocusGained) {
+        this.$store.dispatch('notifyFocusGained', {
+          containerUuid: this.metadata.containerUuid,
+          columnName: this.metadata.columnName,
+          value: this.value
+        })
+      }
+    },
+    focusLost(value) {
+      if (this.metadata.handleFocusLost) {
+        this.$store.dispatch('notifyFocusLost', {
+          containerUuid: this.metadata.containerUuid,
+          columnName: this.metadata.columnName,
+          value: this.value
+        })
+      }
+    },
+    keyPressed(value) {
+      if (this.metadata.handleKeyPressed) {
+        this.$store.dispatch('notifyKeyPressed', {
+          containerUuid: this.metadata.containerUuid,
+          columnName: this.metadata.columnName,
+          value: value.key,
+          keyCode: value.keyCode
+        })
+      }
+    },
+    actionKeyPerformed(value) {
+      if (this.metadata.handleActionKeyPerformed) {
+        this.$store.dispatch('notifyActionKeyPerformed', {
+          containerUuid: this.metadata.containerUuid,
+          columnName: this.metadata.columnName,
+          value: value.target.value,
+          keyCode: value.keyCode
+        })
+      }
+    },
+    keyReleased(value) {
+      if (this.metadata.handleKeyReleased) {
+        this.$store.dispatch('notifyKeyReleased', {
+          containerUuid: this.metadata.containerUuid,
+          columnName: this.metadata.columnName,
+          value: value.key,
+          keyCode: value.keyCode
+        })
+      }
     },
     /**
      * @param {mixed} value, main value in component
@@ -86,6 +141,19 @@ export const fieldMixin = {
         isSendToServer,
         isSendCallout,
         isChangedOldValue
+      }
+      // Global Action performed
+      if (this.metadata.handleActionPerformed) {
+        this.$store.dispatch('notifyActionPerformed', {
+          containerUuid: this.metadata.containerUuid,
+          columnName: this.metadata.columnName,
+          value: newValue
+        })
+      }
+
+      // if is custom field, set custom handle change value
+      if (this.metadata.isCustomField) {
+        return
       }
 
       if (this.metadata.inTable) {

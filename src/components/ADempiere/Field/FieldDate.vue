@@ -10,16 +10,21 @@
     :start-placeholder="$t('components.dateStartPlaceholder')"
     :end-placeholder="$t('components.dateEndPlaceholder')"
     unlink-panels
-    class="date-base"
+    :class="'date-base ' + metadata.cssClassName"
     :readonly="Boolean(metadata.readonly)"
     :disabled="isDisabled"
-    :picker-options="typePicker === 'daterange' ? pickerOptionsDateRange : pickerOptionsDate"
+    :picker-options="pickerOptions"
     @change="preHandleChange"
+    @blur="focusLost"
+    @focus="focusGained"
+    @keydown.native="keyPressed"
+    @keyup.native="keyReleased"
   />
 </template>
 
 <script>
 import { fieldMixin } from '@/components/ADempiere/Field/FieldMixin'
+import { DATE_PLUS_TIME } from '@/utils/ADempiere/references'
 
 export default {
   name: 'FieldDate',
@@ -103,7 +108,8 @@ export default {
         picker += 's'
         return picker
       }
-      if (this.metadata.displayType === 16) {
+      // Date + Time reference (16)
+      if (this.metadata.displayType === DATE_PLUS_TIME.id) {
         picker += 'time'
       }
       if (this.metadata.isRange && !this.metadata.inTable) {
@@ -115,12 +121,14 @@ export default {
      * Parse the date format to be compatible with element-ui
      */
     formatView() {
-      let format = this.metadata.VFormat
-        .replace(/[Y]/gi, 'y')
-        .replace(/[m]/gi, 'M')
-        .replace(/[D]/gi, 'd')
-
-      if (format === '') {
+      let format = ''
+      if (!this.isEmptyValue(this.metadata.VFormat)) {
+        format = this.metadata.VFormat
+          .replace(/[Y]/gi, 'y')
+          .replace(/[m]/gi, 'M')
+          .replace(/[D]/gi, 'd')
+      }
+      if (this.isEmptyValue(format)) {
         format = 'yyyy-MM-dd'
       }
       if (this.typePicker.replace('range', '') === 'datetime') {
@@ -135,6 +143,12 @@ export default {
           .replace(/[aA]/gi, '')
       }
       return undefined
+    },
+    pickerOptions() {
+      if (this.typePicker === 'daterange') {
+        return this.pickerOptionsDateRange
+      }
+      return this.pickerOptionsDate
     }
   },
   watch: {
@@ -183,7 +197,7 @@ export default {
       }
 
       // generate range value
-      if (this.metadata.isRange) {
+      if (this.metadata.isRange && !this.metadata.inTable) {
         let valueTo = this.metadata.valueTo
         if (typeof valueTo === 'number') {
           valueTo = new Date(valueTo).toUTCString()

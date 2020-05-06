@@ -149,6 +149,7 @@
             element-loading-spinner="el-icon-loading"
             cell-class-name="datatable-max-cell-height"
             :show-summary="getterPanel.isShowedTotals"
+            :row-class-name="tableRowClassName"
             :summary-method="getSummaries"
             @row-click="handleRowClick"
             @row-dblclick="handleRowDblClick"
@@ -164,7 +165,7 @@
               fixed
               min-width="50"
             />
-            <template v-for="(fieldAttributes, key) in fieldList">
+            <template v-for="(fieldAttributes, key) in fieldsList">
               <el-table-column
                 v-if="isDisplayed(fieldAttributes)"
                 :key="key"
@@ -185,7 +186,6 @@
                       :in-table="true"
                       :metadata-field="{
                         ...fieldAttributes,
-                        parentUuid: parentUuid,
                         displayColumn: scope.row['DisplayColumn_' + fieldAttributes.columnName],
                         tableIndex: scope.$index,
                         rowKey: scope.row[getterPanel.keyColumn],
@@ -251,7 +251,7 @@ import IconElement from '@/components/ADempiere/IconElement'
 import { formatDate } from '@/filters/ADempiere'
 import MainPanel from '@/components/ADempiere/Panel'
 import { sortFields } from '@/utils/ADempiere/dictionaryUtils'
-import { FIELDS_FLOATS, FIELDS_QUANTITY, FIELD_READ_ONLY_FORM } from '@/components/ADempiere/Field/references'
+import { FIELDS_DECIMALS, FIELDS_QUANTITY, FIELDS_READ_ONLY_FORM } from '@/utils/ADempiere/references'
 import { fieldIsDisplayed } from '@/utils/ADempiere'
 import evaluator from '@/utils/ADempiere/evaluator'
 
@@ -325,15 +325,15 @@ export default {
   },
   computed: {
     getterContextMenu() {
-      const process = this.$store.getters.getContextMenu(this.containerUuid).actions
-      if (process) {
-        return process.filter(menu => {
-          if (menu.type === 'process') {
+      const process = this.$store.getters.getContextMenu(this.containerUuid)
+      if (process && !this.isEmptyValue(process.actions)) {
+        return process.actions.filter(menu => {
+          if (menu.type === 'process' || menu.type === 'application') {
             return menu
           }
         })
       }
-      return false
+      return []
     },
     getShowContextMenuTable() {
       return this.$store.getters.getShowContextMenuTable
@@ -444,12 +444,20 @@ export default {
       }
       return this.getterHeight - 300 - totalRow
     },
-    fieldList() {
+    fieldsList() {
       if (this.getterPanel && this.getterPanel.fieldList) {
-        return this.sortFields(
-          this.getterPanel.fieldList,
-          this.panelType !== 'browser' ? 'seqNoGrid' : 'sequence'
-        )
+        if ((this.panelType === 'window' && this.isParent) || this.panelType === 'browser') {
+          let orderBy = 'seqNoGrid'
+          if (this.panelType === 'browser') {
+            orderBy = 'sequence'
+          }
+
+          return this.sortFields({
+            fieldsList: this.getterPanel.fieldList,
+            orderBy
+          })
+        }
+        return this.getterPanel.fieldList
       }
       return []
     },
@@ -617,15 +625,17 @@ export default {
           cell = cell.getTime()
         }
         // replace number timestamp value for date
-        return formatDate(cell, field.referenceType)
+        return formatDate(cell, field.displayType)
       } else if (field.componentPath === 'FieldNumber') {
         if (this.isEmptyValue(row[field.columnName])) {
           return undefined
         }
         return this.formatNumber({
-          referenceType: field.referenceType,
+          displayType: field.displayType,
           number: row[field.columnName]
         })
+      } else if (field.componentPath === 'FieldSelect' && this.isEmptyValue(row['DisplayColumn_' + field.columnName]) && row[field.columnName] === 0) {
+        return field.defaultValue
       }
       return row['DisplayColumn_' + field.columnName] || row[field.columnName]
     },
@@ -657,8 +667,9 @@ export default {
         return true
       }
       if (fieldIsDisplayed(field)) {
-        // const fieldReadOnlyAllForm = FIELD_READ_ONLY_FORM.filter(item => {
-        //   return row.hasOwnProperty(item.columnName) && item.isChangedAllForm
+        // const fieldReadOnlyAllForm = FIELDS_READ_ONLY_FORM.filter(item => {
+        //   return item.isChangedAllForm &&
+        //     Object.prototype.hasOwnProperty.call(row, item.columnName)
         // })
         // // columnName: Processed, Processing
         // if (fieldReadOnlyAllForm.length) {
@@ -667,8 +678,9 @@ export default {
         // }
 
         // columnName: IsActive
-        const fieldReadOnlyForm = FIELD_READ_ONLY_FORM.find(item => {
-          return row.hasOwnProperty(item.columnName) && !item.isChangedAllForm
+        const fieldReadOnlyForm = FIELDS_READ_ONLY_FORM.find(item => {
+          return !item.isChangedAllForm &&
+            Object.prototype.hasOwnProperty.call(row, item.columnName)
         })
         if (fieldReadOnlyForm) {
           const isReadOnlyRow = row[fieldReadOnlyForm.columnName] === fieldReadOnlyForm.valueIsReadOnlyForm && field.columnName !== fieldReadOnlyForm.columnName
@@ -715,15 +727,22 @@ export default {
     callOffNewRecord() {
       this.getterDataRecords.shift()
     },
+    tableRowClassName({ row, rowIndex }) {
+      if (row.isNew && rowIndex === 0) {
+        return 'warning-row'
+      }
+      return ''
+    },
     addNewRow() {
       if (this.getterNewRecords <= 0) {
         this.$store.dispatch('addNewRow', {
           parentUuid: this.parentUuid,
           containerUuid: this.containerUuid,
-          fieldList: this.fieldList,
+          fieldList: this.fieldsList,
           isEdit: true,
           isSendServer: false
         })
+        this.$refs.multipleTable.$refs.bodyWrapper.scrollTop = 0
       } else {
         const fieldsEmpty = this.$store.getters.getFieldListEmptyMandatory({
           containerUuid: this.containerUuid
@@ -733,6 +752,20 @@ export default {
           type: 'info'
         })
       }
+    },
+    async setFocus() {
+      return new Promise(resolve => {
+        const fieldFocus = this.fieldsList.find(itemField => {
+          if (Object.prototype.hasOwnProperty.call(this.$refs, itemField.columnName)) {
+            if (fieldIsDisplayed(itemField) && !itemField.isReadOnly && itemField.isUpdateable) {
+              return true
+            }
+          }
+        })
+        this.$refs[fieldFocus.columnName][0].focusField()
+        resolve()
+        return
+      })
     },
     async getList() {
       this.oldgetDataDetail = this.getterDataRecords.map(v => v.id)
@@ -917,7 +950,7 @@ export default {
         }).then(response => {
           this.isLoadPanelFromServer = true
         }).catch(error => {
-          console.warn(`FieldList Load Error ${error.code}: ${error.message}.`)
+          console.warn(`Fields List Load Error ${error.code}: ${error.message}.`)
         })
       }
     },
@@ -937,8 +970,8 @@ export default {
           sums[index] = 'Σ'
           return
         }
-        const field = this.fieldList.find(field => field.columnName === columnItem.property)
-        if (!FIELDS_QUANTITY.includes(field.referenceType)) {
+        const field = this.fieldsList.find(field => field.columnName === columnItem.property)
+        if (!FIELDS_QUANTITY.includes(field.displayType)) {
           sums[index] = ''
           return
         }
@@ -954,7 +987,7 @@ export default {
             return prev
           }, 0)
           sums[index] = this.formatNumber({
-            referenceType: field.referenceType,
+            displayType: field.displayType,
             number: total
           })
         }
@@ -962,10 +995,10 @@ export default {
 
       return sums
     },
-    formatNumber({ referenceType, number }) {
+    formatNumber({ displayType, number }) {
       let fixed = 0
       // Amount, Costs+Prices, Number
-      if (FIELDS_FLOATS.includes(referenceType)) {
+      if (FIELDS_DECIMALS.includes(displayType)) {
         fixed = 2
       }
       return new Intl.NumberFormat().format(number.toFixed(fixed))
@@ -986,7 +1019,7 @@ export default {
     },
     getFieldDefinition(fieldDefinition, row) {
       let styleSheet = ''
-      if (fieldDefinition && (fieldDefinition.id !== null || fieldDefinition.conditionsList.length)) {
+      if (fieldDefinition && (!this.isEmptyValue(fieldDefinition.id) || fieldDefinition.conditionsList.length)) {
         fieldDefinition.conditionsList.forEach(condition => {
           const columns = evaluator.parseDepends(condition.condition)
           let conditionLogic = condition.condition
@@ -1042,6 +1075,13 @@ export default {
   }
 </style>
 <style>
+  .el-table .warning-row {
+    background: rgba(161, 250, 223, 0.945);
+  }
+
+  .el-table .success-row {
+    background: #f0f9eb;
+  }
   .el-table > .cell {
     -webkit-box-sizing: border-box;
     box-sizing: border-box;

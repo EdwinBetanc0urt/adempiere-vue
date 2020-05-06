@@ -1,22 +1,29 @@
 <template>
-  <el-input-number
-    :ref="metadata.columnName"
-    v-model="value"
-    type="number"
-    :min="minValue"
-    :max="maxValue"
-    :placeholder="metadata.help"
-    :disabled="isDisabled"
-    :precision="precision"
-    controls-position="right"
-    :class="'display-type-' + cssClass"
-    @change="preHandleChange"
-  />
+  <el-tooltip v-model="isShowed" :manual="true" :content="valueToDisplay" placement="top" effect="light">
+    <el-input-number
+      :ref="metadata.columnName"
+      v-model="value"
+      type="number"
+      :min="minValue"
+      :max="maxValue"
+      :placeholder="metadata.help"
+      :disabled="isDisabled"
+      :precision="precision"
+      :controls="isShowControls"
+      :controls-position="controlsPosition"
+      :class="'display-type-amount ' + metadata.cssClassName"
+      @change="preHandleChange"
+      @blur="focusLost"
+      @focus="focusGained"
+      @keydown.native="keyPressed"
+      @keyup.native="keyReleased"
+    />
+  </el-tooltip>
 </template>
 
 <script>
 import { fieldMixin } from '@/components/ADempiere/Field/FieldMixin'
-import { FIELDS_FLOATS } from '@/components/ADempiere/Field/references'
+import { FIELDS_DECIMALS } from '@/utils/ADempiere/references'
 
 export default {
   name: 'FieldNumber',
@@ -30,7 +37,11 @@ export default {
     value = this.validateValue(value)
     return {
       value: value,
-      showControls: true
+      showControls: true,
+      operation: '',
+      expression: /[\d\/.()%\*\+\-]/gim,
+      valueToDisplay: '',
+      isShowed: false
     }
   },
   computed: {
@@ -46,17 +57,30 @@ export default {
       }
       return Number(this.metadata.valueMin)
     },
-    cssClass() {
-      return this.metadata.referenceType
-        .split(/(?=[A-Z])/)
-        .join('-').toLowerCase()
-    },
     precision() {
       // Amount, Costs+Prices, Number
-      if (FIELDS_FLOATS.includes(this.metadata.referenceType)) {
+      if (FIELDS_DECIMALS.includes(this.metadata.displayType)) {
         return 2
       }
       return undefined
+    },
+    isShowControls() {
+      if (!this.isEmptyValue(this.metadata.showControl)) {
+        if (this.metadata.showControl === 0) {
+          return false
+        }
+      }
+      return true
+    },
+    controlsPosition() {
+      if (!this.isEmptyValue(this.metadata.showControl)) {
+        // show side controls
+        if (this.metadata.showControl === 1) {
+          return undefined
+        }
+      }
+      // show right controls
+      return 'right'
     }
   },
   watch: {
@@ -78,6 +102,57 @@ export default {
         return undefined
       }
       return Number(value)
+    },
+    calculateValue(event) {
+      const isAllowed = event.key.match(this.expression)
+      if (isAllowed) {
+        const result = this.calculationValue(this.value, event)
+        if (!this.isEmptyValue(result)) {
+          this.valueToDisplay = result
+          this.isShowed = true
+        } else {
+          this.valueToDisplay = '...'
+          this.isShowed = true
+        }
+      } else if (!isAllowed && event.key === 'Backspace') {
+        if (String(this.value).slice(0, -1) > 0) {
+          event.preventDefault()
+          const newValue = String(this.value).slice(0, -1)
+          const result = this.calculationValue(newValue, event)
+          if (!this.isEmptyValue(result)) {
+            this.value = this.validateValue(result)
+            this.valueToDisplay = result
+            this.isShowed = true
+          } else {
+            this.valueToDisplay = '...'
+            this.isShowed = true
+          }
+        }
+      } else if (!isAllowed && event.key === 'Delete') {
+        if (String(this.value).slice(-1) > 0) {
+          event.preventDefault()
+          const newValue = String(this.value).slice(-1)
+          const result = this.calculationValue(newValue, event)
+          if (!this.isEmptyValue(result)) {
+            this.value = this.validateValue(result)
+            this.valueToDisplay = result
+            this.isShowed = true
+          } else {
+            this.valueToDisplay = '...'
+            this.isShowed = true
+          }
+        }
+      } else {
+        event.preventDefault()
+      }
+    },
+    changeValue() {
+      if (!this.isEmptyValue(this.valueToDisplay) && this.valueToDisplay !== '...') {
+        const result = this.validateValue(this.valueToDisplay)
+        this.preHandleChange(result)
+      }
+      this.clearVariables()
+      this.isShowed = false
     }
   }
 }

@@ -5,6 +5,7 @@
     :parent-uuid="parentUuid"
     :container-uuid="containerUuid"
     :panel-type="panelType"
+    :table-name="tableName"
     :is-report="isReport"
     :last-parameter="lastParameter"
     :report-format="reportFormat"
@@ -34,6 +35,10 @@ export default {
       type: String,
       default: undefined
     },
+    tableName: {
+      type: String,
+      default: undefined
+    },
     isReport: {
       type: Boolean,
       default: false
@@ -57,11 +62,10 @@ export default {
       return this.$store.state.app.device === 'mobile'
     },
     templateDevice() {
-      let template = 'contextMenuDesktop'
       if (this.isMobile) {
-        template = 'contextMenuMobile'
+        return () => import('@/components/ADempiere/ContextMenu/contextMenuMobile')
       }
-      return () => import(`@/components/ADempiere/ContextMenu/${template}`)
+      return () => import('@/components/ADempiere/ContextMenu/contextMenuDesktop')
     }
   }
 }
@@ -106,7 +110,7 @@ export default {
   .container-submenu-mobile {
     position: absolute;
     height: 39px !important;
-    width: 39px !important;
+    width: 55px !important;
     right: 0;
     top: 0;
   }

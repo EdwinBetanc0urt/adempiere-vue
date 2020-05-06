@@ -5,7 +5,7 @@
     <el-col></el-col> container-->
   <el-col
     v-if="!inTable"
-    v-show="isDisplayed()"
+    v-show="isDisplayed"
     key="is-panel-template"
     :xs="sizeFieldResponsive.xs"
     :sm="sizeFieldResponsive.sm"
@@ -15,61 +15,38 @@
     :class="classField"
   >
     <el-form-item
-      :required="isMandatory()"
+      :required="isMandatory"
     >
       <template slot="label">
-        <field-operator-comparison
-          v-if="isAdvancedQuery && isDisplayed()"
+        <operator-comparison
+          v-if="field.isComparisonField"
           key="is-field-operator-comparison"
           :field-attributes="fieldAttributes"
           :field-value="field.value"
         />
-        <field-context-info
-          v-else-if="(field.contextInfo && field.contextInfo.isActive) || field.reference.zoomWindowList.length"
+        <context-info
+          v-else-if="isContextInfo"
           key="is-field-context-info"
           :field-attributes="fieldAttributes"
           :field-value="field.value"
         />
         <span v-else key="is-field-name">
-          {{ isFieldOnly() }}
+          {{ isFieldOnly }}
         </span>
-        <el-popover
-          v-if="(field.columnName === 'DocStatus') && (!isEmptyValue(processOrdenUuid))"
-          placement="right"
-          width="400"
-          trigger="click"
-        >
-          <el-select
-            v-model="valueActionDocument"
-            @change="documentActionChange"
-          >
-            <el-option
-              v-for="(item, key) in listDocumentActions"
-              :key="key"
-              :label="item.name"
-              :value="item.value"
-            />
-          </el-select>
-          <el-tag
-            v-if="isEmptyValue(valueActionDocument)"
-            :type="tagStatus(field.value)"
-          >
-            {{ field.displayColumn }}
-          </el-tag>
-          <el-tag
-            v-else
-            :type="tagStatus(valueActionDocument)"
-          >
-            {{ labelDocumentActions }}
-          </el-tag>
-          <p v-if="isEmptyValue(valueActionDocument)"> {{ field.description }} </p>
-          <p v-else> {{ descriptionDocumentActions }} </p>
-          <el-button slot="reference" type="text" icon="el-icon-set-up" @click="listActionDocument" />
-        </el-popover>
-        <field-translated
-          v-if="field.isTranslated && !isAdvancedQuery"
+
+        <document-status
+          v-if="isDocuemntStatus"
+          :field="fieldAttributes"
+        />
+        <translated
+          v-if="field.isTranslatedField"
           :field-attributes="fieldAttributes"
           :record-uuid="field.recordUuid"
+        />
+        <calculator
+          v-if="field.isNumericField && !field.isReadOnlyFromLogic"
+          :field-attributes="fieldAttributes"
+          :field-value="field.value"
         />
       </template>
       <component
@@ -87,18 +64,18 @@
     :class="classField"
     :metadata="fieldAttributes"
     :value-model="recordDataFields"
+    :in-table="true"
   />
 </template>
 
 <script>
-import FieldContextInfo from '@/components/ADempiere/Field/fieldPopovers/fieldContextInfo'
-import FieldOperatorComparison from '@/components/ADempiere/Field/fieldPopovers/fieldOperatorComparison'
-import FieldTranslated from '@/components/ADempiere/Field/fieldPopovers/fieldTranslated'
-import { FIELD_ONLY } from '@/components/ADempiere/Field/references'
-import { DEFAULT_SIZE } from '@/components/ADempiere/Field/fieldSize'
-import { fieldIsDisplayed } from '@/utils/ADempiere'
-import { showMessage } from '@/utils/ADempiere/notification'
-import { recursiveTreeSearch } from '@/utils/ADempiere/valueUtils'
+import contextInfo from '@/components/ADempiere/Field/popover/contextInfo'
+import documentStatus from '@/components/ADempiere/Field/popover/documentStatus'
+import operatorComparison from '@/components/ADempiere/Field/popover/operatorComparison'
+import translated from '@/components/ADempiere/Field/popover/translated'
+import calculator from '@/components/ADempiere/Field/popover/calculator'
+import { DEFAULT_SIZE } from '@/utils/ADempiere/references'
+import { evalutateTypeField, fieldIsDisplayed } from '@/utils/ADempiere/dictionaryUtils'
 
 /**
  * This is the base component for linking the components according to the
@@ -107,23 +84,13 @@ import { recursiveTreeSearch } from '@/utils/ADempiere/valueUtils'
 export default {
   name: 'FieldDefinition',
   components: {
-    FieldContextInfo,
-    FieldOperatorComparison,
-    FieldTranslated
+    contextInfo,
+    documentStatus,
+    operatorComparison,
+    translated,
+    calculator
   },
   props: {
-    parentUuid: {
-      type: String,
-      default: ''
-    },
-    containerUuid: {
-      type: String,
-      default: ''
-    },
-    panelType: {
-      type: String,
-      default: 'window'
-    },
     // receives the property that is an object with all the attributes
     metadataField: {
       type: Object,
@@ -148,31 +115,132 @@ export default {
   },
   data() {
     return {
-      field: {},
-      valueActionDocument: ''
+      field: {}
     }
   },
   computed: {
     // load the component that is indicated in the attributes of received property
     componentRender() {
-      if (this.isSelectCreated) {
-        return () => import(`@/components/ADempiere/Field/FieldSelectMultiple`)
+      if (this.isEmptyValue(this.field.componentPath)) {
+        return () => import('@/components/ADempiere/Field/FieldText')
       }
-      return () => import(`@/components/ADempiere/Field/${this.field.componentPath}`)
+      if (this.isSelectCreated) {
+        return () => import('@/components/ADempiere/Field/FieldSelectMultiple')
+      }
+
+      let field
+      switch (this.field.componentPath) {
+        case 'FieldBinary':
+          field = () => import('@/components/ADempiere/Field/FieldBinary')
+          break
+        case 'FieldButton':
+          field = () => import('@/components/ADempiere/Field/FieldButton')
+          break
+        case 'FieldColor':
+          field = () => import('@/components/ADempiere/Field/FieldColor')
+          break
+        case 'FieldDate':
+          field = () => import('@/components/ADempiere/Field/FieldDate')
+          break
+        case 'FieldImage':
+          field = () => import('@/components/ADempiere/Field/FieldImage')
+          break
+        case 'FieldNumber':
+          field = () => import('@/components/ADempiere/Field/FieldNumber')
+          break
+        case 'FieldSelect':
+          field = () => import('@/components/ADempiere/Field/FieldSelect')
+          break
+        case 'FieldText':
+          field = () => import('@/components/ADempiere/Field/FieldText')
+          break
+        case 'FieldTextLong':
+          field = () => import('@/components/ADempiere/Field/FieldTextLong')
+          break
+        case 'FieldTime':
+          field = () => import('@/components/ADempiere/Field/FieldTime')
+          break
+        case 'FieldYesNo':
+          field = () => import('@/components/ADempiere/Field/FieldYesNo')
+          break
+      }
+      return field
+      // return () => import(`@/components/ADempiere/Field/${this.field.componentPath}`)
     },
     fieldAttributes() {
       return {
         ...this.field,
-        panelType: this.panelType,
         inTable: this.inTable,
         isAdvancedQuery: this.isAdvancedQuery,
         // DOM properties
-        required: this.isMandatory(),
-        readonly: this.isReadOnly(),
-        displayed: this.isDisplayed(),
+        required: this.isMandatory,
+        readonly: this.isReadOnly,
+        displayed: this.isDisplayed,
         disabled: !this.field.isActive,
         isSelectCreated: this.isSelectCreated
       }
+    },
+    isDisplayed() {
+      if (this.isAdvancedQuery) {
+        return this.field.isShowedFromUser
+      }
+      return fieldIsDisplayed(this.field) && (this.isMandatory || this.field.isShowedFromUser || this.inTable)
+    },
+    isMandatory() {
+      if (this.isAdvancedQuery) {
+        return false
+      }
+      return this.field.isMandatory || this.field.isMandatoryFromLogic
+    },
+    isReadOnly() {
+      if (this.isAdvancedQuery) {
+        if (['NULL', 'NOT_NULL'].includes(this.field.operator)) {
+          return true
+        }
+        return false
+      }
+
+      if (!this.field.isActive) {
+        return true
+      }
+
+      const isUpdateableAllFields = this.field.isReadOnly || this.field.isReadOnlyFromLogic
+
+      if (this.field.panelType === 'window') {
+        if (this.field.isAlwaysUpdateable) {
+          return false
+        }
+        if (this.field.isProcessingContext) {
+          return true
+        }
+        if (this.field.isProcessedContext) {
+          return true
+        }
+
+        // TODO: Evaluate record uuid without route.action
+        // edit mode is diferent to create new
+        let isWithRecord = this.field.recordUuid !== 'create-new'
+        if (this.inTable) {
+          isWithRecord = !this.isEmptyValue(this.field.recordUuid)
+        }
+
+        return (!this.field.isUpdateable && isWithRecord) || (isUpdateableAllFields || this.field.isReadOnlyFromForm)
+      } else if (this.field.panelType === 'browser') {
+        if (this.inTable) {
+          // browser result
+          return this.field.isReadOnly
+        }
+        // query criteria
+        return this.field.isReadOnlyFromLogic
+      }
+      // other type of panels (process/report)
+      return isUpdateableAllFields
+    },
+    isFieldOnly() {
+      if (this.inTable || this.field.isFieldOnly) {
+        return undefined
+      }
+      return this.field.name
     },
     isSelectCreated() {
       return this.isAdvancedQuery &&
@@ -188,18 +256,21 @@ export default {
       }
       return ''
     },
-    getterIsShowedRecordNavigation() {
-      if (this.panelType === 'window') {
-        return this.$store.getters.getIsShowedRecordNavigation(this.parentUuid)
-      }
-      return false
-    },
     sizeFieldResponsive() {
-      if (!this.isDisplayed()) {
+      if (!this.isDisplayed) {
         return DEFAULT_SIZE
       }
 
-      const sizeField = this.field.sizeFieldFromType.size
+      let sizeField = {}
+      if (this.field.size) {
+        // set field size property
+        sizeField = this.field.size
+      }
+      if (this.isEmptyValue(sizeField)) {
+        // set default size
+        sizeField = DEFAULT_SIZE
+      }
+
       const newSizes = {}
 
       // in table set max width, used by browser result and tab children of window
@@ -220,12 +291,13 @@ export default {
         return newSizes
       }
 
-      if (this.panelType === 'window') {
+      if (this.field.panelType === 'window') {
+        // TODO: Add FieldYesNo and name.length > 12 || 14
         if (this.field.componentPath === 'FieldTextLong') {
           return sizeField
         }
         // two columns if is mobile or desktop and show record navigation
-        if (this.getWidth <= 768 || (this.getWidth >= 768 && this.getterIsShowedRecordNavigation)) {
+        if (this.getWidth <= 768 || (this.getWidth >= 768 && this.field.isShowedRecordNavigation)) {
           newSizes.xs = 12
           newSizes.sm = 12
           newSizes.md = 12
@@ -253,50 +325,22 @@ export default {
       }
       return sizeField
     },
-    getterContextProcessing() {
-      const processing = this.$store.getters.getContextProcessing(this.parentUuid)
-      if (processing === true || processing === 'Y') {
-        return true
+    processOrderUuid() {
+      return this.$store.getters.getOrders
+    },
+    isDocuemntStatus() {
+      if (this.field.panelType === 'window' && !this.isAdvancedQuery) {
+        if (this.field.columnName === 'DocStatus' && !this.isEmptyValue(this.processOrderUuid)) {
+          return true
+        }
       }
       return false
     },
-    getterContextProcessed() {
-      const processed = this.$store.getters.getContextProcessed(this.parentUuid)
-      if (processed === true || processed === 'Y') {
-        return true
+    isContextInfo() {
+      if (!this.isAdvancedQuery) {
+        return false
       }
-      return false
-    },
-    listDocumentActions() {
-      return this.$store.getters.getListDocumentActions.documentActionsList
-    },
-    defaultDocumentActions() {
-      return this.$store.getters.getListDocumentActions.defaultDocumentAction
-    },
-    labelDocumentActions() {
-      const found = this.listDocumentActions.find(element => {
-        if (element.value === this.valueActionDocument) {
-          return element
-        }
-      })
-      if (this.isEmptyValue(found)) {
-        return this.valueActionDocument
-      }
-      return found.name
-    },
-    descriptionDocumentActions() {
-      const found = this.listDocumentActions.find(element => {
-        if (element.value === this.valueActionDocument) {
-          return element
-        }
-      })
-      if (this.isEmptyValue(found)) {
-        return this.valueActionDocument
-      }
-      return found.description
-    },
-    processOrdenUuid() {
-      return this.$store.getters.getOrden
+      return (this.field.contextInfo && this.field.contextInfo.isActive) || (this.field.reference && this.field.reference.windowsList.length)
     }
   },
   watch: {
@@ -307,146 +351,28 @@ export default {
   created() {
     // assined field with prop
     this.field = this.metadataField
+    if (this.field.isCustomField && !this.field.componentPath) {
+      let componentReference = evalutateTypeField(this.field.displayType)
+      if (this.isEmptyValue(componentReference)) {
+        componentReference = {
+          componentPath: 'FieldText'
+        }
+      }
+      this.field = {
+        ...this.metadataField,
+        isActive: true,
+        isDisplayed: true,
+        isDisplayedFromLogic: true,
+        isShowedFromUser: true,
+        //
+        componentPath: componentReference.componentPath
+      }
+    }
   },
   methods: {
-    showMessage,
-    listActionDocument() {
-      this.$store.dispatch('listDocumentActionStatus', {
-        tableName: 'C_Order',
-        recordUuid: this.$route.query.action
-      })
-    },
-    documentActionChange(value) {
-      var actionProcess = this.$store.getters.getOrden
-      this.$store.dispatch('notifyFieldChange', {
-        parentUuid: this.parentUuid,
-        containerUuid: this.containerUuid,
-        columnName: 'DocAction',
-        isSendToServer: true,
-        newValue: value
-      })
-      this.$store.dispatch('startProcess', {
-        action: {
-          uuid: actionProcess.uuid,
-          id: actionProcess.id,
-          name: actionProcess.name
-        }, // process metadata
-        tableName: this.$route.params.tableName,
-        recordId: this.$route.params.recordId,
-        recordUuid: this.$route.query.action,
-        parametersList: [{
-          columnName: 'DocStatus',
-          value: this.valueActionDocument
-        }],
-        isActionDocument: true,
-        parentUuid: this.parentUuid,
-        panelType: this.panelType,
-        containerUuid: this.containerUuid// determinate if get table name and record id (window) or selection (browser)
-      })
-      this.valueActionDocument = ''
-    },
-    isDisplayed() {
-      if (this.isAdvancedQuery) {
-        return this.field.isShowedFromUser
-      }
-      return fieldIsDisplayed(this.field) && (this.isMandatory() || this.field.isShowedFromUser || this.inTable)
-    },
-    isReadOnly() {
-      if (this.isAdvancedQuery) {
-        if (['NULL', 'NOT_NULL'].includes(this.field.operator)) {
-          return true
-        }
-        return false
-      }
-
-      if (!this.field.isActive) {
-        return true
-      }
-
-      const isUpdateableAllFields = this.field.isReadOnly || this.field.isReadOnlyFromLogic
-
-      if (this.panelType === 'window') {
-        if (this.field.isAlwaysUpdateable) {
-          return false
-        }
-        if (this.getterContextProcessing) {
-          return true
-        }
-        if (this.getterContextProcessed) {
-          return true
-        }
-
-        // TODO: Evaluate record uuid without route.action
-        // edit mode is diferent to create new
-        let isWithRecord = this.field.recordUuid !== 'create-new'
-        if (this.inTable) {
-          isWithRecord = !this.isEmptyValue(this.field.recordUuid)
-        }
-
-        return (!this.field.isUpdateable && isWithRecord) || (isUpdateableAllFields || this.field.isReadOnlyFromForm)
-      } else if (this.panelType === 'browser') {
-        if (this.inTable) {
-          // browser result
-          return this.field.isReadOnly
-        }
-        // query criteria
-        return this.field.isReadOnlyFromLogic
-      }
-      // other type of panels (process/report)
-      return isUpdateableAllFields
-    },
-    isMandatory() {
-      if (this.isAdvancedQuery) {
-        return false
-      }
-      return this.field.isMandatory || this.field.isMandatoryFromLogic
-    },
-    isFieldOnly() {
-      if (this.inTable || this.field.isFieldOnly || this.verifyIsFieldOnly()) {
-        return undefined
-      }
-      return this.field.name
-    },
-    /**
-     * TODO: Evaluate the current field with the only fields contained in the
-     * constant FIELD_ONLY
-     * @return {boolean}
-     */
-    verifyIsFieldOnly() {
-      const field = FIELD_ONLY.find(itemField => {
-        if (this.field.displayType === itemField.id) {
-          return true
-        }
-      })
-      return Boolean(field)
-    },
-    focus(columnName) {
-      if (this.isDisplayed() && this.isMandatory() && !this.isReadOnly()) {
-        this.$refs[columnName].activeFocus(columnName)
-      }
-    },
-    redirect({ window, columnName, value }) {
-      const viewSearch = recursiveTreeSearch({
-        treeData: this.permissionRoutes,
-        attributeValue: window.uuid,
-        attributeName: 'meta',
-        secondAttribute: 'uuid',
-        attributeChilds: 'children'
-      })
-      if (viewSearch) {
-        this.$router.push({
-          name: viewSearch.name,
-          query: {
-            action: 'advancedQuery',
-            tabParent: 0,
-            [columnName]: value
-          }
-        })
-      } else {
-        this.showMessage({
-          type: 'error',
-          message: this.$t('notifications.noRoleAccess')
-        })
+    focusField() {
+      if (this.isDisplayed && !this.isReadOnly) {
+        this.$refs[this.field.columnName].activeFocus()
       }
     }
   }

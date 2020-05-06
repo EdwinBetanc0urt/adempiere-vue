@@ -1,4 +1,4 @@
-import { getBrowserSearch } from '@/api/ADempiere/data'
+import { getBrowserSearch } from '@/api/ADempiere/browser'
 import { isEmptyValue } from '@/utils/ADempiere/valueUtils'
 import { parseContext } from '@/utils/ADempiere/contextUtils'
 import { showMessage } from '@/utils/ADempiere/notification'
@@ -28,7 +28,7 @@ const browserControl = {
 
       const browser = rootGetters.getBrowser(containerUuid)
       // parameters isQueryCriteria
-      const finalParameters = rootGetters.getParametersToServer({
+      const parametersList = rootGetters.getParametersToServer({
         containerUuid,
         fieldList: browser.fieldList
       })
@@ -62,7 +62,7 @@ const browserControl = {
         query: parsedQuery,
         whereClause: parsedWhereClause,
         orderByClause: browser.orderByClause,
-        parameters: finalParameters,
+        parametersList,
         nextPageToken: nextPageToken
       })
         .then(browserSearchResponse => {

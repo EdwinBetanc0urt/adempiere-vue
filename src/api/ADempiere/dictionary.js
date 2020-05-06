@@ -1,50 +1,91 @@
 import { getLanguage } from '@/lang/index'
 import { getToken } from '@/utils/auth'
 import Dictionary from '@adempiere/grpc-dictionary-client'
-import { HOST_GRPC_DICTIONARY } from '@/api/ADempiere/constants'
+import { DICTIONARY_ADDRESS } from '@/api/ADempiere/constants'
 
 // Get Instance for connection
 function Instance() {
   return new Dictionary(
-    HOST_GRPC_DICTIONARY,
+    DICTIONARY_ADDRESS,
     getToken(),
     getLanguage() || 'en_US'
   )
 }
 
-export function getWindow(uuid, childrenTabs = true) {
+export function getWindow(uuid, isWithTabs = true) {
   return Instance.call(this).requestWindow({
-    uuid: uuid,
-    isWithTabs: childrenTabs,
+    uuid,
+    isWithTabs,
     isConvertedMetadata: true
   })
 }
 
-export function getProcess(uuid, isConvert = true) {
+export function getProcess(uuid, isConvertedMetadata = true) {
   return Instance.call(this).requestProcess({
     uuid: uuid,
-    isConvertedMetadata: isConvert,
+    isConvertedMetadata,
     isConvertedFields: true
   })
 }
 
-export function getBrowser(uuid, isConvert = true) {
+export function getBrowser(uuid, isConvertedMetadata = true) {
   return Instance.call(this).requestBrowser({
     uuid,
-    isConvertedMetadata: isConvert,
+    isConvertedMetadata,
     isConvertedFields: true
   })
 }
 
-export function getTab(uuid, childrenFields = true, isConvert = true) {
+export function getTab(uuid, isWithFields = true, isConvertedMetadata = true) {
   return Instance.call(this).requestTab({
     uuid,
-    isWithFields: childrenFields,
-    isConvertedMetadata: isConvert,
+    isWithFields,
+    isConvertedMetadata,
     isConvertedFields: true
   })
 }
 
-export function getField(uuid) {
-  return Instance.call(this).requestField(uuid)
+export function getField({
+  fieldUuid,
+  columnUuid,
+  elementUuid,
+  // TableName + ColumnName
+  tableName,
+  columnName,
+  elementColumnName
+}) {
+  return Instance.call(this).requestField({
+    fieldUuid,
+    columnUuid,
+    elementUuid,
+    // TableName + ColumnName
+    tableName,
+    columnName,
+    elementColumnName
+  })
+}
+
+/**
+ * Request Form
+ * @param {string} uuid
+ * @param {number} id, integer identifier
+ */
+export function requestForm({ uuid, id }) {
+  return Instance.call(this).requestForm({
+    uuid,
+    id
+  })
+}
+
+export function requestReference({ referenceUuid, columnName }) {
+  return Instance.call(this).requestReference({
+    referenceUuid,
+    columnName
+  })
+}
+
+export function requestValidationRule({ validationRuleUuid }) {
+  return Instance.call(this).requestValidationRule({
+    validationRuleUuid
+  })
 }

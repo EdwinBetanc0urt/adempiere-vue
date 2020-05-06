@@ -1,10 +1,17 @@
 <template>
-  <el-container v-if="isLoaded" key="browser-loaded" class="view-base" style="height: 86vh;">
+  <el-container
+    v-if="isLoaded"
+    key="browser-loaded"
+    class="view-base"
+    style="height: 86vh;"
+  >
     <modal-dialog
       :container-uuid="browserUuid"
       :panel-type="panelType"
     />
-    <el-header>
+    <el-header
+      v-if="showContextMenu"
+    >
       <context-menu
         :menu-parent-uuid="$route.meta.parentUuid"
         :container-uuid="browserUuid"
@@ -13,39 +20,32 @@
       <div class="w-33">
         <div class="center">
           <el-button
-            v-if="isEmptyValue(browserMetadata.help)"
-            slot="reference"
+            v-popover:helpTitle
             type="text"
             :class="cssClassTitle + ' warn-content text-center'"
           >
-            {{ browserMetadata.name }}
+            {{ browserTitle }}
           </el-button>
         </div>
       </div>
       <el-popover
-        v-if="!isEmptyValue(browserMetadata.name)"
+        v-if="!isEmptyValue(browserMetadata.help)"
+        ref="helpTitle"
         placement="top-start"
-        :title="browserMetadata.name"
+        :title="browserTitle"
         :class="cssClassHelp"
+        width="400"
         trigger="hover"
       >
         <div v-html="browserMetadata.help" />
-        <div class="w-33">
-          <div class="center">
-            <el-button
-              v-if="isEmptyValue(browserMetadata.help)"
-              slot="reference"
-              type="text"
-              :class="cssClassTitle + 'warn-content text-center'"
-            >
-              {{ browserMetadata.name }}
-            </el-button>
-          </div>
-        </div>
       </el-popover>
     </el-header>
     <el-main>
-      <el-collapse v-model="activeSearch" class="container-collasep-open" @change="handleChange">
+      <el-collapse
+        v-model="activeSearch"
+        class="container-collasep-open"
+        @change="handleChange"
+      >
         <el-collapse-item :title="$t('views.searchCriteria')" name="opened-criteria">
           <main-panel
             :container-uuid="browserUuid"
@@ -105,14 +105,20 @@ export default {
     }
   },
   computed: {
+    showContextMenu() {
+      return this.$store.state.settings.showContextMenu
+    },
     getterBrowser() {
       return this.$store.getters.getBrowser(this.browserUuid)
     },
-    getDataRecords() {
-      return this.$store.getters.getDataRecordsList(this.browserUuid)
+    browserTitle() {
+      return this.browserMetadata.name || this.$route.meta.title
+    },
+    isLoadedRecords() {
+      return this.$store.getters.getDataRecordAndSelection(this.browserUuid).isLoaded
     },
     getContainerIsReadyForSubmit() {
-      return !this.$store.getters.isNotReadyForSubmit(this.browserUuid)
+      return !this.$store.getters.isNotReadyForSubmit(this.browserUuid) && !this.browserMetadata.awaitForValuesToQuery
     },
     isMobile() {
       return this.$store.state.app.device === 'mobile'
@@ -128,6 +134,21 @@ export default {
         return 'content-help-mobile'
       }
       return 'content-help'
+    },
+    isShowedCriteria() {
+      if (this.getterBrowser) {
+        return this.getterBrowser.isShowedCriteria
+      }
+      return false
+    }
+  },
+  watch: {
+    isShowedCriteria(value) {
+      const activeSearch = []
+      if (value) {
+        activeSearch.push('opened-criteria')
+      }
+      this.activeSearch = activeSearch
     }
   },
   created() {
@@ -146,8 +167,9 @@ export default {
       })
     },
     getBrowser() {
-      if (this.getterBrowser) {
-        this.browserMetadata = this.getterBrowser
+      const browser = this.getterBrowser
+      if (browser) {
+        this.browserMetadata = browser
         this.isLoaded = true
         this.defaultSearch()
         return
@@ -157,8 +179,8 @@ export default {
         panelType: this.panelType,
         routeToDelete: this.$route
       })
-        .then(() => {
-          this.browserMetadata = this.getterBrowser
+        .then(browserResponse => {
+          this.browserMetadata = browserResponse
           this.defaultSearch()
         })
         .finally(() => {
@@ -172,17 +194,17 @@ export default {
         this.activeSearch = ['opened-criteria']
       }
 
-      if (this.getDataRecords.length <= 0) {
+      if (!this.isLoadedRecords) {
         if (this.getContainerIsReadyForSubmit) {
           this.$store.dispatch('getBrowserSearch', {
             containerUuid: this.browserUuid
           })
-        } else {
-          this.$store.dispatch('setRecordSelection', {
-            containerUuid: this.browserUuid,
-            panelType: this.panelType
-          })
         }
+      } else {
+        this.$store.dispatch('setRecordSelection', {
+          containerUuid: this.browserUuid,
+          panelType: this.panelType
+        })
       }
     }
   }

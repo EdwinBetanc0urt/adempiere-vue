@@ -1,7 +1,7 @@
 import { supportedTypes, exportFileFromJson, exportFileZip } from '@/utils/ADempiere/exportUtil'
 import { showNotification } from '@/utils/ADempiere/notification'
 import { recursiveTreeSearch } from '@/utils/ADempiere/valueUtils'
-import { FIELDS_QUANTITY } from '@/components/ADempiere/Field/references'
+import { FIELDS_QUANTITY } from '@/utils/ADempiere/references'
 
 export const menuTableMixin = {
   props: {
@@ -78,16 +78,9 @@ export const menuTableMixin = {
     getDataAllRecord() {
       return this.getterDataRecordsAndSelection.record
     },
-    fieldList() {
+    fieldsList() {
       if (this.panelMetadata && this.panelMetadata.fieldList) {
-        let sortAttribute = 'sequence'
-        if (this.panelType === 'browser') {
-          sortAttribute = 'seqNoGrid'
-        }
-        return this.sortFields(
-          this.panelMetadata.fieldList,
-          sortAttribute
-        )
+        return this.panelMetadata.fieldList
       }
       return []
     },
@@ -126,7 +119,7 @@ export const menuTableMixin = {
     },
     isFieldsQuantity() {
       const fieldsQuantity = this.getterFieldList.filter(fieldItem => {
-        return FIELDS_QUANTITY.includes(fieldItem.referenceType)
+        return FIELDS_QUANTITY.includes(fieldItem.displayType)
       }).length
       return !fieldsQuantity
     },
@@ -164,6 +157,14 @@ export const menuTableMixin = {
   },
   methods: {
     showNotification,
+    sortTab(actionSequence) {
+      // TODO: Refactor and remove redundant dispatchs
+      this.$store.dispatch('setShowDialog', {
+        type: 'window',
+        action: actionSequence,
+        parentRecordUuid: this.$route.query.action
+      })
+    },
     closeMenu() {
       // TODO: Validate to dispatch one action
       this.$store.dispatch('showMenuTable', {
@@ -249,7 +250,7 @@ export const menuTableMixin = {
         this.$store.dispatch('addNewRow', {
           parentUuid: this.parentUuid,
           containerUuid: this.containerUuid,
-          fieldList: this.fieldList,
+          fieldList: this.fieldsList,
           isEdit: true,
           isSendServer: false
         })

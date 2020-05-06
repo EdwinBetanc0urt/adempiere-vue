@@ -9,10 +9,14 @@
     :is-range="isPickerRange"
     range-separator="-"
     :placeholder="$t('components.timePlaceholder')"
-    class="time-base"
+    :class="'time-base ' + metadata.cssClassName"
     :readonly="Boolean(metadata.readonly)"
     :disabled="isDisabled"
     @change="preHandleChange"
+    @blur="focusLost"
+    @focus="focusGained"
+    @keydown.native="keyPressed"
+    @keyup.native="keyReleased"
   />
 </template>
 

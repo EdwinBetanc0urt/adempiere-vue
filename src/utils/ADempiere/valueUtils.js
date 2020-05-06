@@ -1,4 +1,4 @@
-import { convertValueFromGRPC } from '@/api/ADempiere/data'
+import { TABLE, TABLE_DIRECT } from '@/utils/ADempiere/references'
 
 /**
  * Checks if value is empty. Deep-checks arrays and objects
@@ -10,14 +10,14 @@ import { convertValueFromGRPC } from '@/api/ADempiere/data'
 export function isEmptyValue(value) {
   if (value === undefined || value == null) {
     return true
-  } else if (value === -1 || String(value).trim() === '-1') {
+  } else if (String(value).trim() === '-1') {
     return true
   } else if (typeof value === 'string') {
     return Boolean(!value.trim().length)
   } else if (typeof value === 'function' || typeof value === 'number' || typeof value === 'boolean' || Object.prototype.toString.call(value) === '[object Date]') {
     return false
-  } else if (Object.prototype.toString.call(value) === '[object Map]' && value.size === 0) {
-    return true
+  } else if (Object.prototype.toString.call(value) === '[object Map]' || Object.prototype.toString.call(value) === '[object Set]') {
+    return Boolean(!value.size)
   } else if (Array.isArray(value)) {
     return Boolean(!value.length)
   } else if (typeof value === 'object') {
@@ -37,9 +37,8 @@ export function typeValue(value) {
   } else if (typeof value === 'number') {
     if (value.isInteger()) {
       return 'INTEGER'
-    } else {
-      return 'NUMBER'
     }
+    return 'DOUBLE'
   } else if (typeof value === 'boolean') {
     return 'BOOLEAN'
   } else if (Object.prototype.toString.call(value) === '[object Date]') {
@@ -138,41 +137,6 @@ export function convertArrayPairsToObject({
   return result
 }
 
-export function convertValuesMapToObject(map) {
-  var objectConverted = {}
-  map.forEach((value, key) => {
-    var valueResult = map.get(key)
-    var tempValue
-    if (valueResult) {
-      tempValue = convertValueFromGRPC(value)
-    }
-    objectConverted[key] = tempValue
-  })
-  return objectConverted
-}
-
-export function convertMapToArrayPairs({
-  toConvert,
-  nameKey = 'columnName',
-  nameValue = 'value',
-  isGRPC = true
-}) {
-  const result = []
-  if (toConvert) {
-    toConvert.forEach((value, key) => {
-      const element = {}
-      element[nameKey] = key
-      element[nameValue] = value
-      if (isGRPC) {
-        element[nameValue] = convertValueFromGRPC(value)
-      }
-
-      result.push(element)
-    })
-  }
-  return result
-}
-
 export function convertHasMapToObject(hasMapToConvert) {
   const result = {}
   hasMapToConvert.forEach((value, key) => {
@@ -205,6 +169,7 @@ export function convertFieldListToShareLink(fieldList) {
 
   return attributesListLink.slice(0, -1)
 }
+
 /**
  * Find element in an array recursively
  * @param {object|array} treeData
@@ -225,10 +190,10 @@ export const recursiveTreeSearch = ({
     const length = treeData.length
     while (index < length) {
       let value = treeData[index]
-      if (!isEmptyValue(value) && value.hasOwnProperty(attributeName)) {
+      if (!isEmptyValue(value) && Object.prototype.hasOwnProperty.call(value, attributeName)) {
         value = value[attributeName]
       }
-      if (!isEmptyValue(value) && secondAttribute && value.hasOwnProperty(secondAttribute)) {
+      if (!isEmptyValue(value) && secondAttribute && Object.prototype.hasOwnProperty.call(value, secondAttribute)) {
         value = value[secondAttribute]
       }
 
@@ -254,10 +219,10 @@ export const recursiveTreeSearch = ({
     }
   } else {
     let value = treeData
-    if (!isEmptyValue(value) && value.hasOwnProperty(attributeName)) {
+    if (!isEmptyValue(value) && Object.prototype.hasOwnProperty.call(value, attributeName)) {
       value = value[attributeName]
     }
-    if (!isEmptyValue(value) && secondAttribute && value.hasOwnProperty(secondAttribute)) {
+    if (!isEmptyValue(value) && secondAttribute && Object.prototype.hasOwnProperty.call(value, secondAttribute)) {
       value = value[secondAttribute]
     }
 
@@ -278,11 +243,22 @@ export const recursiveTreeSearch = ({
 }
 
 /**
- *
- * @param {*} param0
+ * Parsed value to component type
+ * @param {mixed} value, value to parsed
+ * @param {string} fieldType, or componentPath
+ * @param {number} displayType, reference in ADempiere
+ * @param {boolean} isMandatory, field is mandatory
+ * @param {boolean} isIdentifier, field is ID
  */
-export function parsedValueComponent({ fieldType, value, referenceType, isMandatory = false }) {
-  if ((value === undefined || value === null) && !isMandatory) {
+export function parsedValueComponent({
+  fieldType,
+  value,
+  displayType,
+  isMandatory = false,
+  isIdentifier = false
+}) {
+  const isEmpty = isEmptyValue(value)
+  if (isEmpty && !isMandatory) {
     if (fieldType === 'FieldYesNo') {
       return Boolean(value)
     }
@@ -293,12 +269,12 @@ export function parsedValueComponent({ fieldType, value, referenceType, isMandat
   switch (fieldType) {
     // data type Number
     case 'FieldNumber':
-      if (String(value).trim() === '' || value === undefined || value === null) {
+      if (isEmpty) {
         returnValue = undefined
         if (isMandatory) {
           returnValue = 0
         }
-      } else if (typeof value === 'object' && value.hasOwnProperty('query')) {
+      } else if (typeof value === 'object' && Object.prototype.hasOwnProperty.call(value, 'query')) {
         returnValue = value
       } else {
         if (Array.isArray(value) && value.length) {
@@ -313,7 +289,7 @@ export function parsedValueComponent({ fieldType, value, referenceType, isMandat
     case 'FieldYesNo':
       if (value === 'false' || value === 'N') {
         value = false
-      } else if (typeof value === 'object' && value.hasOwnProperty('query')) {
+      } else if (typeof value === 'object' && Object.prototype.hasOwnProperty.call(value, 'query')) {
         returnValue = value
       }
       returnValue = Boolean(value)
@@ -322,7 +298,7 @@ export function parsedValueComponent({ fieldType, value, referenceType, isMandat
     // data type String
     case 'FieldText':
     case 'FieldTextArea':
-      if (typeof value === 'object' && value.hasOwnProperty('query')) {
+      if (typeof value === 'object' && Object.prototype.hasOwnProperty.call(value, 'query')) {
         returnValue = value
       }
       returnValue = value ? String(value) : undefined
@@ -331,7 +307,7 @@ export function parsedValueComponent({ fieldType, value, referenceType, isMandat
     // data type Date
     case 'FieldDate':
     case 'FieldTime ':
-      if (String(value).trim() === '') {
+      if (isEmpty) {
         value = undefined
       }
       if (!isNaN(value)) {
@@ -340,18 +316,22 @@ export function parsedValueComponent({ fieldType, value, referenceType, isMandat
       if (typeof value === 'number' || typeof value === 'string') {
         value = new Date(value)
       }
-      if (typeof value === 'object' && value.hasOwnProperty('query')) {
+      if (typeof value === 'object' && Object.prototype.hasOwnProperty.call(value, 'query')) {
         returnValue = value
       }
       returnValue = value
       break
 
     case 'FieldSelect':
-      if (String(value).trim() === '') {
+      if (isEmpty) {
         value = undefined
       }
-      if (referenceType === 'TableDirect') {
-        if (value !== '' && value !== null && value !== undefined) {
+      if (typeof value === 'boolean') {
+        value = value ? 'Y' : 'N'
+      }
+      // Table (18) or Table Direct (19)
+      if (displayType === TABLE.id || (displayType === TABLE_DIRECT.id && isIdentifier)) {
+        if (!isEmptyValue(value)) {
           value = Number(value)
         }
       } // Search or List
@@ -364,6 +344,7 @@ export function parsedValueComponent({ fieldType, value, referenceType, isMandat
   }
   return returnValue
 }
+
 /**
  * add a tab depending on the status of the document
  * @param {string} tag, document status key
@@ -409,4 +390,47 @@ export function tagStatus(tag) {
       break
   }
   return type
+}
+
+let partialValue = ''
+export function calculationValue(value, event) {
+  const isZero = Number(value) === 0
+  const VALIDATE_EXPRESSION = /[\d\/.()%\*\+\-]/gim
+  const isValidKey = VALIDATE_EXPRESSION.test(event.key)
+  if (event.type === 'keydown' && isValidKey) {
+    partialValue += event.key
+    const operation = isEmptyValue(value) || isZero ? partialValue : String(value) + partialValue
+    if (!isEmptyValue(operation)) {
+      try {
+        // eslint-disable-next-line no-eval
+        return eval(operation) + ''
+      } catch (error) {
+        return null
+      }
+    }
+  } else if (event.type === 'click') {
+    if (!isEmptyValue(value)) {
+      try {
+        // eslint-disable-next-line no-eval
+        return eval(value) + ''
+      } catch (error) {
+        return null
+      }
+    }
+  } else {
+    if ((event.key === 'Backspace' || event.key === 'Delete') && !isEmptyValue(value)) {
+      try {
+        // eslint-disable-next-line no-eval
+        return eval(value) + ''
+      } catch (error) {
+        return null
+      }
+    } else {
+      return null
+    }
+  }
+}
+
+export function clearVariables() {
+  partialValue = ''
 }

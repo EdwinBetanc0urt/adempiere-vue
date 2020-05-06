@@ -4,23 +4,35 @@
     v-model="value"
     :pattern="pattern"
     :rows="rows"
+    :class="metadata.cssClassName"
     :type="typeTextBox"
     :placeholder="metadata.help"
     :readonly="Boolean(metadata.readonly)"
     :disabled="isDisabled"
     :maxlength="maxLength"
     :show-password="Boolean(metadata.isEncrypted)"
+    :autofocus="metadata.inTable"
     @change="preHandleChange"
+    @blur="focusLost"
+    @focus="focusGained"
+    @keydown.native="keyPressed"
+    @keyup.native="keyReleased"
+    @keyup.native.enter="actionKeyPerformed"
   />
 </template>
 
 <script>
 import { fieldMixin } from '@/components/ADempiere/Field/FieldMixin'
+import { TEXT } from '@/utils/ADempiere/references'
 
 export default {
   name: 'FieldText',
   mixins: [fieldMixin],
   props: {
+    inTable: {
+      type: Boolean,
+      default: false
+    },
     pattern: {
       type: String,
       default: undefined
@@ -38,12 +50,13 @@ export default {
       if (this.metadata.inTable) {
         return 1
       }
-      return 5
+      return 4
     },
     typeTextBox() {
       // String, Url, FileName...
       let typeInput = 'text'
-      if (this.metadata.referenceType === 'Text') {
+      // Display Type 'Text' (14)
+      if (this.metadata.displayType === TEXT.id) {
         typeInput = 'textarea'
       }
       if (this.metadata.isEncrypted) {

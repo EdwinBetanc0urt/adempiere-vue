@@ -12,6 +12,8 @@ export default {
     profile: 'Profile',
     ProcessActivity: 'Process Logs',
     Role: 'Role',
+    Client: 'Client',
+    Warehouse: 'Warehouse',
     ReportViewer: 'Report Viewer'
   },
   notifications: {
@@ -247,7 +249,8 @@ export default {
     theme: 'Theme Color',
     tagsView: 'Open Tags-View',
     fixedHeader: 'Fixed Header',
-    sidebarLogo: 'Sidebar Logo'
+    sidebarLogo: 'Sidebar Logo',
+    showContextMenu: 'Show Context Information'
   },
   profile: {
     aboutMe: 'About Me',
@@ -280,6 +283,9 @@ export default {
         timeElapsed: 'Time Elapsed',
         addNote: 'Add Note'
       }
+    },
+    callout: {
+      error: 'Error In Callout'
     }
   },
   data: {
@@ -311,7 +317,11 @@ export default {
     BETWEEN: 'Between ">-<"',
     NOT_NULL: 'Is not null',
     NULL: 'Is null',
-    IN: 'Include',
-    NOT_IN: 'Not include'
+    IN: 'Include "()"',
+    NOT_IN: 'Not include "!()"'
+  },
+  quickAccess: {
+    newRecord: 'Quick Access to Create New Record',
+    listRecords: 'Quick Access to List All Records'
   }
 }

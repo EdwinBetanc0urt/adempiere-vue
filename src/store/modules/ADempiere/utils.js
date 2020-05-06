@@ -1,35 +1,39 @@
 import Vue from 'vue'
 
-const utils = {
-  state: {
-    width: 0,
-    height: 0,
-    splitHeight: 50,
-    splitHeightTop: 0,
-    widthLayout: 0,
-    tempShareLink: '',
-    oldAction: undefined,
-    reportType: '',
-    isShowedTable: false,
-    recordUuidTable: 0,
-    isShowedTabChildren: false,
-    recordTable: 0,
-    selectionProcess: [],
-    isContainerInfo: false,
-    documentAction: [],
-    chatText: '',
-    markDown: false,
-    openRoute: {
-      path: '',
-      name: '',
-      route: {},
-      params: {},
-      definedParameters: {},
-      query: {},
-      isReaded: false,
-      isLoaded: false
-    }
+const initStateUtils = {
+  width: 0,
+  height: 0,
+  splitHeight: 50,
+  splitHeightTop: 0,
+  widthLayout: 0,
+  tempShareLink: '',
+  oldAction: undefined,
+  reportType: '',
+  isShowedTable: false,
+  recordUuidTable: 0,
+  isShowedTabChildren: false,
+  recordTable: 0,
+  selectionProcess: [],
+  isContainerInfo: false,
+  documentAction: [],
+  chatText: '',
+  markDown: false,
+  openRoute: {
+    path: '',
+    name: '',
+    route: {},
+    params: {},
+    definedParameters: {},
+    query: {},
+    isReaded: false,
+    isLoaded: false
   },
+  panelRight: '',
+  currentRecord: {}
+}
+
+const utils = {
+  state: initStateUtils,
   mutations: {
     setWidth(state, width) {
       state.width = width
@@ -58,7 +62,7 @@ const utils = {
     setProcessTable(state, recordTable) {
       state.recordTable = recordTable
     },
-    setOrden(state, payload) {
+    setOrder(state, payload) {
       state.documentAction = payload
     },
     setChatText(state, payload) {
@@ -88,6 +92,15 @@ const utils = {
     setReadRoute(state, payload) {
       Vue.set(state.openRoute, 'definedParameters', payload.parameters)
       Vue.set(state.openRoute, 'isLoaded', true)
+    },
+    setPanelRight(state, payload) {
+      state.panelRight = payload
+    },
+    resetStateUtils(state) {
+      state = initStateUtils
+    },
+    setCurrentRecor(state, payload) {
+      state.currentRecord = payload
     }
   },
   actions: {
@@ -146,8 +159,14 @@ const utils = {
     setReportTypeToShareLink({ commit }, value) {
       commit('setReportTypeToShareLink', value)
     },
-    setOrden({ commit }, params) {
-      commit('setOrden', params)
+    setOrder({ commit }, params) {
+      commit('setOrder', params)
+    },
+    setPanelRight({ commit }, panelRight) {
+      commit('setPanelRight', panelRight)
+    },
+    currentRecord({ commit }, record) {
+      commit('setCurrentRecor', record)
     }
   },
   getters: {
@@ -209,7 +228,7 @@ const utils = {
     getIsReadedOpenRoute: (state) => {
       return state.openRoute.isReaded
     },
-    getOrden: (state) => {
+    getOrders: (state) => {
       return state.documentAction
     },
     getChatTextLong: (state) => {
@@ -217,6 +236,12 @@ const utils = {
     },
     getMarkDown: (state) => {
       return state.markDown
+    },
+    getPanelRight: (state) => {
+      return state.panelRight
+    },
+    getCurrentRecord: (state) => {
+      return state.currentRecord
     }
   }
 }

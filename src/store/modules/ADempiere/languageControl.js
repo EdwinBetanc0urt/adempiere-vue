@@ -1,9 +1,7 @@
-import {
-  requestLanguages,
-  requestTranslations,
-  updateEntity
-} from '@/api/ADempiere/data'
+import { requestLanguages } from '@/api/ADempiere/system-core'
+import { requestTranslations, updateEntity } from '@/api/ADempiere/persistence'
 import { isEmptyValue } from '@/utils/ADempiere/valueUtils'
+
 const languageControl = {
   state: {
     languagesList: [],
@@ -25,6 +23,9 @@ const languageControl = {
     },
     addTranslationChangeRecord(state, payload) {
       payload.currentTranslation = payload.newTranlation
+    },
+    resetStateTranslations(state) {
+      state.translationsList = []
     }
   },
   actions: {
@@ -175,7 +176,7 @@ const languageControl = {
     getLanguageByParameter: (state) => (parameter) => {
       const list = state.languagesList
       list.forEach(language => {
-        if (language.hasOwnProperty(parameter)) {
+        if (Object.prototype.hasOwnProperty.call(language, parameter)) {
           return language
         }
       })

@@ -27,6 +27,10 @@ export const contextMixin = {
       type: String,
       default: undefined
     },
+    tableName: {
+      type: String,
+      default: undefined
+    },
     isReport: {
       type: Boolean,
       default: false
@@ -47,12 +51,16 @@ export const contextMixin = {
     defaultFromatExport: {
       type: String,
       default: 'xlsx'
+    },
+    isDisplayed: {
+      type: Boolean,
+      default: false
     }
   },
   data() {
     return {
       actions: [],
-      supportedTypes: supportedTypes,
+      supportedTypes,
       references: [],
       file: this.$store.getters.getProcessResult.download,
       downloads: this.$store.getters.getProcessResult.url,
@@ -93,7 +101,10 @@ export const contextMixin = {
         menuUuid = this.menuParentUuid
       }
       const relations = this.$store.getters.getRelations(menuUuid)
-      return relations.children
+      if (relations) {
+        return relations.children
+      }
+      return []
     },
     permissionRoutes() {
       return this.$store.getters.permission_routes
@@ -129,9 +140,8 @@ export const contextMixin = {
       return value.map(fieldItem => {
         if (fieldItem.componentPath === 'FieldSelect') {
           return 'DisplayColumn_' + fieldItem.columnName
-        } else {
-          return fieldItem.columnName
         }
+        return fieldItem.columnName
       })
     },
     isDisabledExportRecord() {
@@ -140,20 +150,20 @@ export const contextMixin = {
       }
       return false
     },
-    getterDataRecordsAll() {
+    getAllDataRecords() {
       return this.$store.getters.getDataRecordAndSelection(this.containerUuid)
     },
     getDataSelection() {
-      return this.getterDataRecordsAll.selection
+      return this.getAllDataRecords.selection
     },
     getDataRecord() {
-      return this.getterDataRecordsAll.record.filter(fieldItem => {
+      return this.getAllDataRecords.record.filter(fieldItem => {
         if (this.recordUuid === fieldItem.UUID) {
           return fieldItem
         }
       })
     },
-    getterDataLog() {
+    getDataLog() {
       if (this.panelType === 'window') {
         return this.$store.getters.getDataLog(this.containerUuid, this.recordUuid)
       }
@@ -162,7 +172,7 @@ export const contextMixin = {
     processParametersExecuted() {
       return this.$store.getters.getCachedReport(this.$route.params.instanceUuid).parameters
     },
-    getterWindowOldRoute() {
+    getOldRouteOfWindow() {
       if (this.panelType === 'window') {
         const oldRoute = this.$store.state.windowControl.windowOldRoute
         if (!this.isEmptyValue(oldRoute.query.action) && oldRoute.query.action !== 'create-new' && this.$route.query.action === 'create-new') {
@@ -171,7 +181,7 @@ export const contextMixin = {
       }
       return false
     },
-    metadataReport() {
+    getReportDefinition() {
       return this.$store.getters.getCachedReport(this.$route.params.instanceUuid)
     },
     isPersonalLock() {
@@ -198,7 +208,7 @@ export const contextMixin = {
         this.generateContextMenu()
       }
     },
-    getterDataLog(newValue, oldValue) {
+    getDataLog(newValue, oldValue) {
       if (this.panelType === 'window' && newValue !== oldValue) {
         this.generateContextMenu()
       }
@@ -281,6 +291,7 @@ export const contextMixin = {
           this.$store.dispatch('getReferencesListFromServer', {
             parentUuid: this.parentUuid,
             containerUuid: this.containerUuid,
+            tableName: this.tableName,
             recordUuid: this.recordUuid
           })
             .then(() => {
@@ -328,29 +339,30 @@ export const contextMixin = {
       if (this.isEmptyValue(this.metadataMenu)) {
         return
       }
+      this.actions = this.metadataMenu.actions
 
       // TODO: Add store attribute to avoid making repeated requests
-      if (this.panelType === 'window' && !this.isEmptyValue(this.$route.params.tableName)) {
-        this.$store.dispatch('getPrivateAccessFromServer', {
-          tableName: this.$route.params.tableName,
-          recordId: this.$route.params.recordId
-        })
-          .then(privateAccessResponse => {
-            if (!this.isEmptyValue(privateAccessResponse)) {
-              this.$nextTick(() => {
-                this.validatePrivateAccess(privateAccessResponse)
-              })
-            }
-          })
-      }
-      this.actions = this.metadataMenu.actions
       if (this.panelType === 'window') {
-        var processAction = this.actions.find(item => {
+        if (!this.isEmptyValue(this.$route.params.tableName)) {
+          this.$store.dispatch('getPrivateAccessFromServer', {
+            tableName: this.$route.params.tableName,
+            recordId: this.$route.params.recordId
+          })
+            .then(privateAccessResponse => {
+              if (!this.isEmptyValue(privateAccessResponse)) {
+                this.$nextTick(() => {
+                  this.validatePrivateAccess(privateAccessResponse)
+                })
+              }
+            })
+        }
+
+        const processAction = this.actions.find(item => {
           if (item.name === 'Procesar Orden' || (item.name === 'Process Order')) {
             return item
           }
         })
-        this.$store.dispatch('setOrden', processAction)
+        this.$store.dispatch('setOrder', processAction)
       }
 
       if (this.actions && this.actions.length) {
@@ -372,7 +384,7 @@ export const contextMixin = {
             }
             // rollback
             if (itemAction.action === 'undoModifyData') {
-              itemAction.disabled = Boolean(!this.getterDataLog && !this.getterWindowOldRoute)
+              itemAction.disabled = Boolean(!this.getDataLog && !this.getOldRouteOfWindow)
             }
           }
         })
@@ -407,67 +419,16 @@ export const contextMixin = {
     },
     runAction(action) {
       if (action.type === 'action') {
-        // run process or report
-        const fieldNotReady = this.$store.getters.isNotReadyForSubmit(this.$route.meta.uuid)
-        if (!fieldNotReady) {
-          let containerParams = this.$route.meta.uuid
-          if (this.lastParameter !== undefined) {
-            containerParams = this.lastParameter
-          }
-
-          var parentMenu = this.menuParentUuid
-          if (this.$route.params) {
-            if (this.$route.params.menuParentUuid) {
-              parentMenu = this.$route.params.menuParentUuid
-            }
-          }
-          if (this.panelType === 'process') {
-            this.$store.dispatch('setTempShareLink', {
-              processId: this.$route.params.processId,
-              href: window.location.href
-            })
-          }
-
-          let reportFormat = action.reportExportType
-          if (this.isEmptyValue(reportFormat)) {
-            reportFormat = this.$route.query.reportType
-            if (this.isEmptyValue(reportFormat)) {
-              reportFormat = this.$route.meta.reportFormat
-              if (this.isEmptyValue(reportFormat)) {
-                reportFormat = 'html'
-              }
-            }
-          }
-
-          this.$store.dispatch(action.action, {
-            action,
-            parentUuid: this.containerUuid,
-            containerUuid: containerParams, // EVALUATE IF IS action.uuid
-            panelType: this.panelType, // determinate if get table name and record id (window) or selection (browser)
-            reportFormat: reportFormat, // this.$route.query.reportType ? this.$route.query.reportType : action.reportExportType,
-            menuParentUuid: parentMenu, // to load relationsList in context menu (report view)
-            routeToDelete: this.$route
-          })
-            .catch(error => {
-              console.warn(error)
-            })
-        } else {
-          this.showNotification({
-            type: 'warning',
-            title: this.$t('notifications.emptyValues'),
-            name: '<b>' + fieldNotReady.name + '.</b> ',
-            message: this.$t('notifications.fieldMandatory')
-          })
-        }
+        this.executeAction(action)
       } else if (action.type === 'process') {
         // run process associate with view (window or browser)
         this.showModal(action)
       } else if (action.type === 'dataAction') {
-        if (action.action === 'undoModifyData' && Boolean(!this.getterDataLog) && this.getterWindowOldRoute) {
+        if (action.action === 'undoModifyData' && Boolean(!this.getDataLog) && this.getOldRouteOfWindow) {
           this.$router.push({
-            path: this.getterWindowOldRoute.path,
+            path: this.getOldRouteOfWindow.path,
             query: {
-              ...this.getterWindowOldRoute.query
+              ...this.getOldRouteOfWindow.query
             }
           })
         } else {
@@ -486,72 +447,140 @@ export const contextMixin = {
               }
             })
         }
-      } else if (action.type === 'reference') {
-        if (action.windowUuid && action.recordUuid) {
-          const viewSearch = recursiveTreeSearch({
-            treeData: this.permissionRoutes,
-            attributeValue: action.windowUuid,
-            attributeName: 'meta',
-            secondAttribute: 'uuid',
-            attributeChilds: 'children'
-          })
-          if (viewSearch) {
-            this.$router.push({
-              name: viewSearch.name,
-              query: {
-                action: action.type,
-                referenceUuid: action.uuid,
-                recordUuid: action.recordUuid,
-                windowUuid: this.parentUuid,
-                tabParent: 0
-              }
-            })
+      } else if (action.type === 'updateReport') {
+        this.updateReport(action)
+      }
+    },
+    executeAction(action) {
+      let containerParams = this.$route.meta.uuid
+      if (this.lastParameter !== undefined) {
+        containerParams = this.lastParameter
+      }
+      const fieldsNotReady = this.$store.getters.getFieldListEmptyMandatory({
+        containerUuid: containerParams
+      })
+
+      // run process or report
+      if (this.isEmptyValue(fieldsNotReady)) {
+        let menuParentUuid = this.menuParentUuid
+        if (this.isEmptyValue(menuParentUuid) && this.$route.params) {
+          if (!this.isEmptyValue(this.$route.params.menuParentUuid)) {
+            menuParentUuid = this.$route.params.menuParentUuid
           }
         }
-      } else if (action.type === 'updateReport') {
-        var updateReportParams = {
-          instanceUuid: action.instanceUuid,
-          processUuid: action.processUuid,
-          tableName: action.tableName,
-          processId: action.processId,
-          printFormatUuid: action.printFormatUuid,
-          reportViewUuid: action.reportViewUuid,
-          isSummary: false,
-          reportName: this.$store.getters.getProcessResult.name,
-          reportType: this.$store.getters.getReportType,
-          option: action.option
-        }
-        if (this.isEmptyValue(updateReportParams.instanceUuid)) {
-          updateReportParams.instanceUuid = this.$route.params.instanceUuid
-        }
-        if (this.isEmptyValue(updateReportParams.processId)) {
-          updateReportParams.processId = this.$route.params.processId
-        }
-        this.$store.dispatch('getReportOutputFromServer', updateReportParams)
-          .then(response => {
-            if (!response.isError) {
-              let link = {
-                href: undefined,
-                download: undefined
-              }
 
-              const blob = new Blob(
-                [response.outputStream],
-                { type: response.mimeType }
-              )
-              link = document.createElement('a')
-              link.href = window.URL.createObjectURL(blob)
-              link.download = response.fileName
-              if (response.reportType !== 'pdf' && response.reportType !== 'html') {
-                link.click()
-              }
-              response.url = link.href
-            }
-            this.$store.dispatch('finishProcess', {
-              processOutput: response,
-              routeToDelete: this.$route
-            })
+        if (this.panelType === 'process') {
+          this.$store.dispatch('setTempShareLink', {
+            processId: this.$route.params.processId,
+            href: window.location.href
           })
+        }
+
+        let reportFormat = action.reportExportType
+        if (this.isEmptyValue(reportFormat)) {
+          reportFormat = this.$route.query.reportType
+          if (this.isEmptyValue(reportFormat)) {
+            reportFormat = this.$route.meta.reportFormat
+            if (this.isEmptyValue(reportFormat)) {
+              reportFormat = 'html'
+            }
+          }
+        }
+
+        this.$store.dispatch(action.action, {
+          action,
+          parentUuid: this.containerUuid,
+          containerUuid: containerParams, // EVALUATE IF IS action.uuid
+          panelType: this.panelType, // determinate if get table name and record id (window) or selection (browser)
+          reportFormat, // this.$route.query.reportType ? this.$route.query.reportType : action.reportExportType,
+          menuParentUuid, // to load relationsList in context menu (report view)
+          routeToDelete: this.$route
+        })
+          .catch(error => {
+            console.warn(error)
+          })
+      } else {
+        this.showNotification({
+          type: 'warning',
+          title: this.$t('notifications.emptyValues'),
+          name: '<b>' + fieldsNotReady + '.</b> ',
+          message: this.$t('notifications.fieldMandatory'),
+          isRedirect: false
+        })
+      }
+    },
+    updateReport(action) {
+      let instanceUuid = action.instanceUuid
+      if (this.isEmptyValue(instanceUuid)) {
+        instanceUuid = this.$route.params.instanceUuid
+      }
+      let processId = action.processId
+      if (this.isEmptyValue(processId)) {
+        processId = this.$route.params.processId
+      }
+      this.$store.dispatch('getReportOutputFromServer', {
+        instanceUuid,
+        processUuid: action.processUuid,
+        tableName: action.tableName,
+        processId,
+        printFormatUuid: action.printFormatUuid,
+        reportViewUuid: action.reportViewUuid,
+        isSummary: false,
+        reportName: this.$store.getters.getProcessResult.name,
+        reportType: this.$store.getters.getReportType,
+        option: action.option
+      })
+        .then(reportOutputResponse => {
+          if (!reportOutputResponse.isError) {
+            let link = {
+              href: undefined,
+              download: undefined
+            }
+
+            const blob = new Blob(
+              [reportOutputResponse.outputStream],
+              { type: reportOutputResponse.mimeType }
+            )
+            link = document.createElement('a')
+            link.href = window.URL.createObjectURL(blob)
+            link.download = reportOutputResponse.fileName
+            if (reportOutputResponse.reportType !== 'pdf' && reportOutputResponse.reportType !== 'html') {
+              link.click()
+            }
+            reportOutputResponse.url = link.href
+          }
+          this.$store.dispatch('finishProcess', {
+            processOutput: reportOutputResponse,
+            routeToDelete: this.$route
+          })
+        })
+    },
+    openReference(referenceElement) {
+      if (referenceElement.windowUuid && referenceElement.recordUuid) {
+        const viewSearch = recursiveTreeSearch({
+          treeData: this.permissionRoutes,
+          attributeValue: referenceElement.windowUuid,
+          attributeName: 'meta',
+          secondAttribute: 'uuid',
+          attributeChilds: 'children'
+        })
+        if (viewSearch) {
+          this.$router.push({
+            name: viewSearch.name,
+            query: {
+              action: referenceElement.type,
+              referenceUuid: referenceElement.uuid,
+              recordUuid: referenceElement.recordUuid,
+              // windowUuid: this.parentUuid,
+              tabParent: 0
+            }
+          })
+        } else {
+          this.showMessage({
+            type: 'error',
+            message: this.$t('notifications.noRoleAccess')
+          })
+        }
       }
     },
     setShareLink() {
@@ -616,7 +645,7 @@ export const contextMixin = {
       this.$router.push({
         name: ROUTES.PRINT_FORMAT_SETUP_WINDOW.uuid,
         query: {
-          action: this.metadataReport.output.printFormatUuid,
+          action: this.getReportDefinition.output.printFormatUuid,
           tabParent: ROUTES.PRINT_FORMAT_SETUP_WINDOW.tabParent
         }
       })
