@@ -4,7 +4,7 @@
       <i class="el-icon-s-operation el-icon--right" />
     </el-button>
 
-    <el-dropdown-menu slot="dropdown" class="dropdown-calc">
+    <el-dropdown-menu slot="dropdown">
       <el-input
         ref="calculatorInput"
         v-model="calcValue"
@@ -35,8 +35,8 @@
         <el-table-column
           align="center"
           prop="row1"
-          height="15"
-          width="35"
+          :height="columnHeight"
+          :width="columnWidth"
         >
           <template slot-scope="{ row, column }">
             <el-button type="text" :disabled="isDisabled(row, column)">
@@ -47,8 +47,8 @@
         <el-table-column
           align="center"
           prop="row2"
-          height="15"
-          width="35"
+          :height="columnHeight"
+          :width="columnWidth"
         >
           <template slot-scope="{ row, column }">
             <el-button type="text" :disabled="isDisabled(row, column)">
@@ -59,8 +59,8 @@
         <el-table-column
           align="center"
           prop="row3"
-          height="15"
-          width="35"
+          :height="columnHeight"
+          :width="columnWidth"
         >
           <template slot-scope="{ row, column }">
             <el-button type="text" :disabled="isDisabled(row, column)">
@@ -71,8 +71,8 @@
         <el-table-column
           align="center"
           prop="row4"
-          height="15"
-          width="35"
+          :height="columnHeight"
+          :width="columnWidth"
         >
           <template slot-scope="{ row, column }">
             <el-button type="text" :disabled="isDisabled(row, column)">
@@ -83,8 +83,8 @@
         <el-table-column
           align="center"
           prop="row5"
-          height="15"
-          width="35"
+          :height="columnHeight"
+          :width="columnWidth"
         >
           <template slot-scope="{ row, column }">
             <el-button type="text" :disabled="isDisabled(row, column)">
@@ -107,19 +107,36 @@ export default {
     fieldAttributes: {
       type: Object,
       required: true
-    },
-    fieldValue: {
-      type: Number,
-      default: undefined
     }
   },
   data() {
     return {
-      calcValue: this.fieldValue,
+      columnHeight: 15,
+      columnWidth: 35,
+      calcValue: this.value,
       valueToDisplay: ''
     }
   },
   computed: {
+    value() {
+      const { columnName, containerUuid, inTable } = this.fieldAttributes
+
+      // table records values
+      if (inTable) {
+        const row = this.$store.getters.getRowData({
+          containerUuid,
+          index: this.fieldAttributes.tableIndex
+        })
+        return row[columnName]
+      }
+
+      // main panel values
+      return this.$store.getters.getValueOfField({
+        parentUuid: this.fieldAttributes.parentUuid,
+        containerUuid,
+        columnName
+      })
+    },
     tableData() {
       return buttons
     }
@@ -221,14 +238,20 @@ export default {
       return false
     },
     calculateValue(event) {
-      const result = this.calculationValue(this.fieldValue, event)
-      if (!this.isEmptyValue(result)) {
-        this.valueToDisplay = result
-      } else {
-        this.valueToDisplay = '...'
+      let result = this.calculationValue(this.value, event)
+      if (this.isEmptyValue(result)) {
+        result = '...'
+      }
+      this.valueToDisplay = result
+    },
+    focusCalc(isShowed) {
+      if (isShowed) {
+        this.calcValue = this.value
+        this.valueToDisplay = this.calcValue
+        this.focusInputCalculator()
       }
     },
-    focusCalc() {
+    focusInputCalculator() {
       this.$refs.calculatorInput.focus()
     }
   }
