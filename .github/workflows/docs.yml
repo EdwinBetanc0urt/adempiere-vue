@@ -51,9 +51,9 @@ jobs:
             cd docs/.vuepress/dist
             touch .nojekyll 
             git init
-            git add -A
             git config --local user.email "action@github.com"
             git config --local user.name "GitHub Action"
+            git add -A
             git commit -m "Update documentation" -a || true
 
       - name: Force push to destination branch
