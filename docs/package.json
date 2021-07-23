@@ -3,6 +3,12 @@
   "version": "2.0.0",
   "description": "adempiere-vue have all related to documentation of ADempiere Vue Client",
   "main": "index.js",
+  "contributors": [
+    {
+      "name": "Edwin Betancourt",
+      "url": "https://github.com/EdwinBetanc0urt/"
+    }
+  ],
   "scripts": {
     "start": "vuepress dev",
     "dev": "vuepress dev",
