@@ -39,19 +39,20 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
         run: |
-            cd docs
-            npm i
-            npm run build
+          cd docs
+          npm i
+          npm run build
 
       - name: Init new repo in dist folder and commit generated files
         run: |
-            cd docs/.vuepress/dist
-            touch .nojekyll
-            git init
-            git config --local user.email "action@github.com"
-            git config --local user.name "GitHub Action"
-            git add -A
-            git commit -m "Update documentation: ${{ github.event.head_commit.message }}" -a || true
+          cd docs/.vuepress/dist
+          touch .nojekyll
+          git init
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          echo ${{ github.event.head_commit.message }}
+          git commit -m "Update documentation" -a || true
 
       - name: Force push to destination branch
         uses: ad-m/github-push-action@v0.6.0
