@@ -31,8 +31,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Generate static vuepress files
-        uses: actions/setup-node@v1
+      # - name: Generate static vuepress files
+      - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
         run: |
