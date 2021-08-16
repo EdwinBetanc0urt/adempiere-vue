@@ -77,26 +77,17 @@ jobs:
           OWNER: '${{ github.repository_owner }}'
           NAME: '${{ github.event.repository.name }}'
 
-      - name: Build and push Docker image Unstable
-        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop' || startsWith(github.ref, 'refs/heads/feature')
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: ./build/Dockerfile.prod
-          push: true
-          tags: |
-            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}:unstable
-            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}:${{ github.sha }}
+      - run: echo ${GITHUB_REF##*/}
+      - run: echo ${{ github.event.pull_request.base.ref }}
 
-      - name: Build and push Docker image Redefinition
-        if: github.ref == 'refs/heads/window-redefinition'
+      - name: Build and push Docker image
         uses: docker/build-push-action@v2
         with:
           context: .
           file: ./build/Dockerfile.prod
           push: true
           tags: |
-            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}:redefinition
+            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}:${GITHUB_REF##*/}
             ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}:${{ github.sha }}
 
       - name: Image digest
@@ -144,26 +135,14 @@ jobs:
           NAME: '${{ github.event.repository.name }}'
 
       - name: Build and push Docker image
-        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop' || startsWith(github.ref, 'refs/heads/feature')
         uses: docker/build-push-action@v2
         with:
           context: .
           file: ./build/Dockerfile.prod
           push: true
           tags: |
-            ${{ env.ORG_LC }}/${{ env.REPO_LC }}:unstable
+            ${{ env.ORG_LC }}/${{ env.REPO_LC }}:${GITHUB_REF##*/}
             ${{ env.ORG_LC }}/${{ env.REPO_LC }}:${{ github.sha }}
-
-      - name: Build and push Docker image Redefinition
-        if: github.ref == 'refs/heads/window-redefinition'
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: ./build/Dockerfile.prod
-          push: true
-          tags: |
-            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}:redefinition
-            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}:${{ github.sha }}
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
