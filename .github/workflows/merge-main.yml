@@ -77,12 +77,13 @@ jobs:
           OWNER: '${{ github.repository_owner }}'
           NAME: '${{ github.event.repository.name }}'
 
-      - run: echo ${GITHUB_REF##*/}
-      - run: echo ${{ github.event.pull_request.base.ref }}
-      - run: echo ${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
+      - name: Get branch name
+        id: branch-name
+        uses: tj-actions/branch-names@v4.8
 
-      - name: Set env.BRANCH
-        run: echo "BRANCH=$(echo $GITHUB_REF | cut -d'/' -f 3)" >> $GITHUB_ENV
+      - run: |
+          echo "Running on current: ${{ steps.branch-name.outputs.current_branch }}"
+          echo "Running on ref: ${{ steps.branch-name.outputs.ref_branch }}"
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
