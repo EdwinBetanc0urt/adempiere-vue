@@ -1,17 +1,16 @@
-# This workflow will run tests using node and then publish a package to GitHub Packages when a release is created
-# For more information see: https://help.github.com/actions/language-and-framework-guides/publishing-nodejs-packages
+# This workflow will run tests using node and then publish a package to GitHub Container Registry and Docker Hub Regitry when a pushed into main branches
 # This file was contributed by Edwin Betancourt from ERP Consultores y Asociados, C.A
 
-name: Merge Main Branches
+name: Push Main Branches
 
 on:
-  # Triggers the workflow on push or pull request events but only for the develop branch
+  # Triggers the workflow on push events but only for the develop branch
   push:
-   branches:
-    - master
-    - develop
-    - window-redefinition
-    - feature/*
+    branches:
+      - master
+      - develop
+      - window-redefinition
+      - feature/*
 
 jobs:
 
@@ -32,8 +31,6 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
-      - run: echo ${{ github.event.release.tag_name }}
-
       - name: Set tag version into config file
         run: sed -i "s|releaseNoForDocumentation|${{ github.event.release.tag_name }}|g" config/default.json
       - name: Install packages
@@ -48,33 +45,6 @@ jobs:
         with:
           name: adempiere-vue
           path: dist
-
-
-  # # Publish dist binaries to application
-  # publish-app-dist:
-  #   name: Upload ADempiere-Vue binaries
-  #   needs:
-  #     - build-app
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Download build dist app
-  #       uses: actions/download-artifact@v2
-  #       with:
-  #         name: adempiere-vue
-
-  #     - name: Compress files for application dist
-  #       uses: TheDoctor0/zip-release@0.6.0
-  #       with:
-  #         filename: 'Adempiere-Vue.zip'
-  #         path: './'
-
-  #     - name: Publish application binary in repository
-  #       uses: skx/github-action-publish-binaries@master
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #       with:
-  #         args: 'Adempiere-Vue.zip'
-
 
   # Publish docker image in Github Container Registry to application
   push-imame-ghcr:
