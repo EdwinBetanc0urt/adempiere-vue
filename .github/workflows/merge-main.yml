@@ -79,6 +79,10 @@ jobs:
 
       - run: echo ${GITHUB_REF##*/}
       - run: echo ${{ github.event.pull_request.base.ref }}
+      - run: echo ${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
+
+      - name: Set env.BRANCH
+        run: echo "BRANCH=$(echo $GITHUB_REF | cut -d'/' -f 3)" >> $GITHUB_ENV
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
@@ -87,7 +91,7 @@ jobs:
           file: ./build/Dockerfile.prod
           push: true
           tags: |
-            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}:${GITHUB_REF##*/}
+            ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}:${{ env.BRANCH }}
             ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}:${{ github.sha }}
 
       - name: Image digest
@@ -141,7 +145,7 @@ jobs:
           file: ./build/Dockerfile.prod
           push: true
           tags: |
-            ${{ env.ORG_LC }}/${{ env.REPO_LC }}:${GITHUB_REF##*/}
+            ${{ env.ORG_LC }}/${{ env.REPO_LC }}:${{ env.BRANCH }}
             ${{ env.ORG_LC }}/${{ env.REPO_LC }}:${{ github.sha }}
 
       - name: Image digest
