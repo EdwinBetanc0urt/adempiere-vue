@@ -2,7 +2,7 @@
 # For more information see: https://help.github.com/actions/language-and-framework-guides/publishing-nodejs-packages
 # This file was contributed by Edwin Betancourt from ERP Consultores y Asociados, C.A
 
-name: Publish Project
+name: Merge Main Branches
 
 on:
   # Triggers the workflow on push or pull request events but only for the develop branch
@@ -32,7 +32,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
-      - run: echo ${{ github.event }}
+      - run: echo ${{ github.event.release.tag_name }}
 
       - name: Set tag version into config file
         run: sed -i "s|releaseNoForDocumentation|${{ github.event.release.tag_name }}|g" config/default.json
@@ -108,7 +108,7 @@ jobs:
           NAME: '${{ github.event.repository.name }}'
 
       - name: Build and push Docker image Unstable
-        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop'
+        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop' || startsWith(github.ref, 'refs/heads/feature')
         uses: docker/build-push-action@v2
         with:
           context: .
@@ -174,7 +174,7 @@ jobs:
           NAME: '${{ github.event.repository.name }}'
 
       - name: Build and push Docker image
-        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop'
+        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop' || startsWith(github.ref, 'refs/heads/feature')
         uses: docker/build-push-action@v2
         with:
           context: .
