@@ -9,7 +9,8 @@ on:
     branches:
       - develop
       - master
-      - test/**
+      - main
+      - test**
     paths-ignore:
       - 'docs/**'
 
@@ -37,6 +38,15 @@ jobs:
 
       - name: Install packages
         run: yarn ci
+
+      - name: Add sub module
+        run: git submodule add -b develop https://github.com/adempiere/adv-default-theme.git src/themes/advDefaultTheme
+
+      - name: Update sub module
+        run: git submodule update --init --remote
+
+      - name: Set config with custom theme
+        run: node src/themes/advDefaultTheme/scripts/generate-local-config.js
 
       - name: Compile dist
         run: yarn build:prod
