@@ -39,6 +39,9 @@ jobs:
       - name: Install packages
         run: yarn ci
 
+      - name: change repository git to https
+        run: git config --global url."https://github.com/".insteadOf git://github.com/
+
       - name: Add sub module
         run: git submodule add -b develop https://github.com/adempiere/adv-default-theme.git src/themes/default
 
