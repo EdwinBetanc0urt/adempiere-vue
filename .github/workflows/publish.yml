@@ -16,7 +16,6 @@ jobs:
   build-app:
     name: Build dist ADempiere-Vue
     runs-on: ubuntu-latest
-
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
@@ -45,12 +44,27 @@ jobs:
       - name: Compile dist
         run: yarn build:prod
 
-      - name: Upload dist app
+      # - name: Upload dist.zip app as artifact
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: adempiere-vue
+      #     path: dist
+
+      - name: Compress tar.gz action step
+        uses: a7ul/tar-action@v1.1.0
+        id: compress
+        with:
+          command: c
+          cwd: .
+          files: |
+            dist
+          outPath: ./adempiere-vue.tar.gz
+
+      - name: Upload dist.tar.gz app as artifact
         uses: actions/upload-artifact@v3
         with:
           name: adempiere-vue
-          path: dist
-
+          path: ./adempiere-vue.tar.gz
 
   # Publish dist binaries to application
   publish-app-dist:
@@ -61,23 +75,80 @@ jobs:
       - build-app
     runs-on: ubuntu-latest
     steps:
-      - name: Download build dist app
+      - name: Download build dist.tar.gz app
         uses: actions/download-artifact@v3
         with:
           name: adempiere-vue
 
-      - name: Compress files for application dist
-        uses: TheDoctor0/zip-release@0.6.2
-        with:
-          filename: 'Adempiere-Vue.zip'
-          path: './'
+      # - name: Compress files for application dist
+      #   uses: TheDoctor0/zip-release@0.6.2
+      #   with:
+      #     filename: 'Adempiere-Vue.zip'
+      #     path: './'
+
+      # - name: Publish application binary in repository
+      #   uses: skx/github-action-publish-binaries@master
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     args: 'Adempiere-Vue.zip'
+
+      - name: Rename binary file
+        run: cp adempiere-vue.tar.gz ADempiere-Vue.tar.gz
 
       - name: Publish application binary in repository
         uses: skx/github-action-publish-binaries@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          args: 'Adempiere-Vue.zip'
+          args: 'ADempiere-Vue.tar.gz'
+
+  # # Publish docker image in Github Container Registry to application
+  # push-imame-ghcr:
+  #   name: Push Docker image to GitHub Container Regitry
+  #   needs:
+  #     - build-app
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Check out the repo
+  #       uses: actions/checkout@v3
+
+  #     - name: Download build dist.tar.gz app
+  #       uses: actions/download-artifact@v3
+  #       with:
+  #         name: adempiere-vue
+  #         path: dist
+
+  #     - name: Login to GitHub Container Registry
+  #       uses: docker/login-action@v2
+  #       with:
+  #         registry: ghcr.io
+  #         username: ${{ github.actor }}
+  #         password: ${{ secrets.GITHUB_TOKEN }}
+
+  #     - name: Build and push Docker image
+  #       uses: docker/build-push-action@v3
+  #       with:
+  #         context: .
+  #         file: ./build/Dockerfile.prod
+  #         push: true
+  #         tags: |
+  #           ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}:latest
+  #           ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}:${{ github.event.release.tag_name }}
+  #         build-args: |
+  #           NGINX_RELEASE=1.21.6
+
+  #     - name: Build and push Docker Image Alpine
+  #       uses: docker/build-push-action@v3
+  #       with:
+  #         context: .
+  #         file: ./build/Dockerfile.prod
+  #         push: true
+  #         tags: |
+  #           ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}:alpine
+  #           ghcr.io/${{ env.OWNER_LC }}/${{ env.REPO_LC }}:alpine-${{ github.event.release.tag_name }}
+  #         build-args: |
+  #           NGINX_RELEASE=1.21.6-alpine
 
   # Check secrets to push image in docker hub registry
   check-docker-secrets:
@@ -113,7 +184,7 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v3
 
-      - name: Download build dist app
+      - name: Download build dist.tar.gz app
         uses: actions/download-artifact@v3
         with:
           name: adempiere-vue
@@ -139,7 +210,7 @@ jobs:
             NGINX_RELEASE=1.21.6
 
       - name: Build and push Docker Image Alpine
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           context: .
           file: ./build/Dockerfile.prod
@@ -149,12 +220,11 @@ jobs:
             ${{ secrets.DOCKER_REPO_FRONTEND }}:alpine-${{ github.event.release.tag_name }}
           build-args: |
             NGINX_RELEASE=1.21.6-alpine
-            
+
   # Build dist documentation ADempiere-Vue
   build-docs:
     name: Build dist ADempiere-Vue docs
     runs-on: ubuntu-latest
-
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3

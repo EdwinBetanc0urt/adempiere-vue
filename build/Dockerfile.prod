@@ -8,8 +8,8 @@ LABEL maintainer="Elsiosanches@gmail.com; EdwinBetanc0urt@outlook.com;" \
 ENV API_URL="http://localhost:8085"
 
 COPY build/start.sh .
-COPY dist/ /usr/share/nginx/html/
+COPY dist/adempiere-vue.tar.gz /usr/share/nginx/html/
 
-RUN chmod +x *.sh 
+RUN chmod +x *.sh
 
 ENTRYPOINT ["sh" , "start.sh"]
