@@ -95,10 +95,10 @@ jobs:
                 "${{ secrets.DOCKER_TOKEN }}" != "" ]]; \
           then
             echo "Secrets to use a container registry are configured in the repo"
-            echo "::set-output name=is_have_secrets::true"
+            echo "is_have_secrets=true" >> $GITHUB_OUTPUT
           else
             echo "Secrets to use a container registry were not configured in the repo"
-            echo "::set-output name=is_have_secrets::false"
+            echo "is_have_secrets=false" >> $GITHUB_OUTPUT
           fi
 
   # Publish docker alpine image in Docker Hub registry to application
