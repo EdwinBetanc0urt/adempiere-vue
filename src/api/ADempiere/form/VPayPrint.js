@@ -31,6 +31,15 @@ export function paymentSelection({
   id,
   uuid
 }) {
+  return requestGetPaymentSelection({
+    id,
+    uuid
+  })
+}
+export function requestGetPaymentSelection({
+  id,
+  uuid
+}) {
   return request({
     url: `${config.vPayPrint.endpoint}/payment-selection`,
     method: 'get',
@@ -48,12 +57,30 @@ export function paymentSelection({
  * List Payment Selection
  */
 export function paymentSelections() {
+  return requestPaymentSelectionsList()
+}
+export function requestPaymentSelectionsList({
+  // DSL Query
+  searchValue,
+  // Page Data
+  pageSize = ROWS_OF_RECORDS_BY_PAGE,
+  pageToken
+}) {
   return request({
     url: `${config.vPayPrint.endpoint}/list-payment-selections`,
-    method: 'post'
+    method: 'post',
+    data: {
+      search_value: searchValue,
+      page_size: pageSize,
+      page_token: pageToken
+    }
   })
     .then(response => {
-      return response
+      return {
+        nextPageToken: response.next_page_token,
+        recordCount: response.record_count,
+        recordsList: response.records
+      }
     })
 }
 
@@ -72,6 +99,21 @@ export function paymentRules({
   pageSize = ROWS_OF_RECORDS_BY_PAGE,
   pageToken
 }) {
+  return requestPaymentRulesList({
+    searchValue,
+    paymentSelectionId,
+    pageSize,
+    pageToken
+  })
+}
+export function requestPaymentRulesList({
+  //  DSL Query
+  searchValue,
+  paymentSelectionId,
+  //  Page Data
+  pageSize = ROWS_OF_RECORDS_BY_PAGE,
+  pageToken
+}) {
   return request({
     url: `${config.vPayPrint.endpoint}/list-payment-rules`,
     method: 'post',
@@ -83,7 +125,11 @@ export function paymentRules({
     }
   })
     .then(response => {
-      return response
+      return {
+        nextPageToken: response.next_page_token,
+        recordCount: response.record_count,
+        recordsList: response.records
+      }
     })
 }
 
@@ -96,6 +142,23 @@ export function paymentRules({
  * @param {String} pageToken, Page Token
  */
 export function listPaymentTable({
+  //  DSL Query
+  searchValue,
+  paymentSelectionId,
+  paymentRuleId,
+  //  Page Data
+  pageSize = ROWS_OF_RECORDS_BY_PAGE,
+  pageToken
+}) {
+  return requestPaymentsList({
+    searchValue,
+    paymentSelectionId,
+    paymentRuleId,
+    pageSize,
+    pageToken
+  })
+}
+export function requestPaymentsList({
   //  DSL Query
   searchValue,
   paymentSelectionId,
@@ -122,11 +185,24 @@ export function listPaymentTable({
 
 /**
  * Document Sequence Number
- * @param {Number} paymentSelectionId, Current Payment Selection ID
- * @param {Number} paymentRuleId, Payment Rules ID
- * @param {Number} banckAccountId, Bank Account ID
+ * @param {String} paymentSelectionId, Current Payment Selection ID
+ * @param {String} paymentRuleId, Payment Rules ID
+ * @param {String} pageSize, Page Size
+ * @param {String} pageToken, Page Token
  */
 export function documentSequence({
+  //  DSL Query
+  paymentSelectionId,
+  paymentRuleId,
+  banckAccountId
+}) {
+  return requestGetDocumentSequence({
+    paymentSelectionId,
+    paymentRuleId,
+    banckAccountId
+  })
+}
+export function requestGetDocumentSequence({
   //  DSL Query
   paymentSelectionId,
   paymentRuleId,
