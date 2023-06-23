@@ -76,13 +76,16 @@ export function requestGetEntities({
   // used as where clause
   if (!isEmptyValue(filters)) {
     filters = filters.map(condition => {
-      const { value, operator, columnName, valueTo, values } = condition
+      const {
+        columnName, value, operator, valueTo, values, valueType
+      } = condition
       return {
         column_name: columnName,
-        value,
         operator,
+        value,
         value_to: valueTo,
-        values
+        values,
+        value_type: valueType
       }
     })
   }
