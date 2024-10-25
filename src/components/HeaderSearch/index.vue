@@ -80,6 +80,9 @@ export default {
     routes() {
       return this.$store.getters.permission_routes
     },
+    role() {
+      return this.$store.getters['user/getRole']
+    },
     lang() {
       return this.$store.getters.language
     },
@@ -222,6 +225,14 @@ export default {
       for (const router of routes) {
         // skip hidden router
         // if (router.meta && router.meta.isIndex) { continue }
+        if (router.validateToEnable) {
+          const isEnalbed = router.validateToEnable({
+            role: this.role
+          })
+          if (!isEnalbed) {
+            continue
+          }
+        }
         const pathGenerated = path.resolve(basePath, router.path)
         // const uuid = (!isEmptyValue(router.meta) && !isEmptyValue(router.meta.uuid)) ? router.meta.uuid : getUuidv4()
         const data = {

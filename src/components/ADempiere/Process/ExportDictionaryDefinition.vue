@@ -190,9 +190,10 @@ import {
 
 // Utils and Helper Methods
 import {
-  isEmptyValue,
-  recursiveTreeSearch
+  // recursiveTreeSearch,
+  isEmptyValue
 } from '@/utils/ADempiere/valueUtils'
+import { showMessage } from '@/utils/ADempiere/notification'
 
 export default defineComponent({
   name: 'ExportDictionaryDefinition',
@@ -226,6 +227,10 @@ export default defineComponent({
     })
     const spanColumn = computed(() => {
       return isMobile.value ? 12 : 6
+    })
+
+    const currentRole = computed(() => {
+      return store.getters['user/getRole']
     })
 
     /**
@@ -292,25 +297,38 @@ export default defineComponent({
     }
 
     function redirectToProcess() {
-      const existProcessMenu = recursiveTreeSearch({
-        treeData: store.getters.permission_routes,
-        attributeValue: 'process_54692',
-        attributeName: 'meta',
-        secondAttribute: 'containerKey',
-        attributeChilds: 'children'
-      })
-
-      if (!isEmptyValue(existProcessMenu)) {
+      // wihtout System Role
+      if (currentRole.value.id !== 0) {
         router.push({
-          name: existProcessMenu.name
+          path: '/'
         }, () => {})
-
+        showMessage({
+          type: 'error',
+          showClose: true,
+          message: lang.t('notifications.noRoleAccess')
+        })
         return
       }
+
+      // const existProcessMenu = recursiveTreeSearch({
+      //   treeData: store.getters.permission_routes,
+      //   attributeValue: 'process_54692',
+      //   attributeName: 'meta',
+      //   secondAttribute: 'containerKey',
+      //   attributeChilds: 'children'
+      // })
+
+      // if (!isEmptyValue(existProcessMenu)) {
+      //   router.push({
+      //     name: existProcessMenu.name
+      //   }, () => {})
+
+      //   return
+      // }
     }
 
     onBeforeMount(() => {
-      // redirectToProcess()
+      redirectToProcess()
     })
 
     return {

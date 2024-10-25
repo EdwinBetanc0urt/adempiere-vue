@@ -90,6 +90,9 @@ const staticRoutes = [
         name: 'Issues All',
         hidden: false,
         validateToEnable: ({ role, dynamicRoutes }) => {
+          if (isEmptyValue(dynamicRoutes)) {
+            return false
+          }
           const menuTree = dynamicRoutes
           const viewSearch = recursiveTreeSearch({
             treeData: menuTree,
@@ -497,11 +500,12 @@ const staticRoutes = [
     component: Layout,
     hidden: true,
     validateToEnable: ({ role }) => {
-      if (!role) {
-        return false
-      }
-      // only for System role
-      return Boolean(role.id === 0)
+      // if (!role) {
+      //   return false
+      // }
+      // // only for System role
+      // return Boolean(role.id === 0)
+      false
     },
     children: [
       {
