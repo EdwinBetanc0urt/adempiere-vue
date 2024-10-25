@@ -16,6 +16,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import language from '@/lang'
+
 // This file is used for set a static values for references of fields,
 // currently exists for ADempiere metadata distints display types and are represented for follow:
 export const DEFAULT_SIZE = {
@@ -29,6 +31,7 @@ export const DEFAULT_SIZE = {
 // Account Element
 export const ACCOUNT_ELEMENT = {
   id: 25,
+  name: language.t('field.displayType.accountElement'),
   isSupported: true,
   valueType: 'INTEGER',
   componentPath: 'FieldAccountingCombination',
@@ -38,6 +41,7 @@ export const ACCOUNT_ELEMENT = {
 // Amount (Number with 4 decimals)
 export const AMOUNT = {
   id: 12,
+  name: language.t('field.displayType.amount'),
   isSupported: true,
   valueType: 'DECIMAL',
   componentPath: 'FieldNumber',
@@ -47,6 +51,7 @@ export const AMOUNT = {
 // Resource Assignment
 export const RESOURCE_ASSIGNMENT = {
   id: 33,
+  name: language.t('field.displayType.resourceAssignment'),
   isSupported: false,
   valueType: 'INTEGER',
   componentPath: 'FieldText',
@@ -56,6 +61,7 @@ export const RESOURCE_ASSIGNMENT = {
 // Binary Data (display type BLOB)
 export const BINARY_DATA = {
   id: 23,
+  name: language.t('field.displayType.binaryData'),
   isSupported: true,
   valueType: 'INTEGER',
   componentPath: 'FieldBinary',
@@ -66,6 +72,7 @@ export const BINARY_DATA = {
 export const BUTTON = {
   id: 28,
   uuid: 'a47ec1c2-fb40-11e8-a479-7a0060f0aa01',
+  name: language.t('field.displayType.button'),
   isSupported: true,
   valueType: 'STRING',
   componentPath: 'FieldButton',
@@ -75,6 +82,7 @@ export const BUTTON = {
 // Chart
 export const CHART = {
   id: 53370,
+  name: language.t('field.displayType.chart'),
   isSupported: false,
   valueType: 'STRING',
   componentPath: 'FieldText',
@@ -84,6 +92,7 @@ export const CHART = {
 // Color
 export const COLOR = {
   id: 27,
+  name: language.t('field.displayType.color'),
   isSupported: false,
   valueType: 'INTEGER',
   componentPath: 'FieldColor',
@@ -93,6 +102,7 @@ export const COLOR = {
 // Cost or Prices
 export const COSTS_PLUS_PRICES = {
   id: 37,
+  name: language.t('field.displayType.costPlusPrices'),
   isSupported: true,
   valueType: 'DECIMAL',
   componentPath: 'FieldNumber',
@@ -102,6 +112,7 @@ export const COSTS_PLUS_PRICES = {
 // Date
 export const DATE = {
   id: 15,
+  name: language.t('field.displayType.date'),
   isSupported: true,
   valueType: 'DATE',
   componentPath: 'FieldDate',
@@ -111,6 +122,7 @@ export const DATE = {
 // Date with time
 export const DATE_PLUS_TIME = {
   id: 16,
+  name: language.t('field.displayType.datePlusTime'),
   isSupported: true,
   valueType: 'DATE',
   componentPath: 'FieldDate',
@@ -120,6 +132,7 @@ export const DATE_PLUS_TIME = {
 // Local File
 export const LOCAL_FILE = {
   id: 39,
+  name: language.t('field.displayType.fileName'),
   isSupported: true,
   valueType: 'STRING',
   componentPath: 'FieldText',
@@ -129,6 +142,7 @@ export const LOCAL_FILE = {
 // Local File Path
 export const LOCAL_FILE_PATH = {
   id: 38,
+  name: language.t('field.displayType.filePath'),
   isSupported: true,
   valueType: 'STRING',
   componentPath: 'FieldText',
@@ -138,6 +152,7 @@ export const LOCAL_FILE_PATH = {
 // Local File Path or Name
 export const LOCAL_FILE_PATH_OR_NAME = {
   id: 53670,
+  name: language.t('field.displayType.filePathOrName'),
   isSupported: true,
   valueType: 'STRING',
   componentPath: 'FieldText',
@@ -147,6 +162,7 @@ export const LOCAL_FILE_PATH_OR_NAME = {
 // ID
 export const ID = {
   id: 13,
+  name: language.t('field.displayType.identifier'),
   isSupported: true,
   valueType: 'INTEGER',
   componentPath: 'FieldNumber',
@@ -156,6 +172,7 @@ export const ID = {
 // Binary Image Data
 export const IMAGE = {
   id: 32,
+  name: language.t('field.displayType.image'),
   isSupported: true,
   valueType: 'INTEGER',
   componentPath: 'FieldImage',
@@ -165,6 +182,7 @@ export const IMAGE = {
 // Integer
 export const INTEGER = {
   id: 11,
+  name: language.t('field.displayType.integer'),
   isSupported: true,
   valueType: 'INTEGER',
   componentPath: 'FieldNumber',
@@ -174,6 +192,7 @@ export const INTEGER = {
 // Reference List
 export const LIST = {
   id: 17,
+  name: language.t('field.displayType.list'),
   isSupported: true,
   valueType: 'STRING',
   componentPath: 'FieldSelect',
@@ -183,6 +202,7 @@ export const LIST = {
 // Location Address
 export const LOCATION_ADDRESS = {
   id: 21,
+  name: language.t('field.displayType.locationAddress'),
   isSupported: true,
   valueType: 'INTEGER',
   componentPath: 'FieldLocationAddress',
@@ -192,6 +212,7 @@ export const LOCATION_ADDRESS = {
 // Warehouse Locator Data type
 export const LOCATOR_WAREHOUSE = {
   id: 31,
+  name: language.t('field.displayType.warehouseLocator'),
   isSupported: true,
   valueType: 'INTEGER',
   componentPath: 'FieldWarehouseLocator',
@@ -201,6 +222,7 @@ export const LOCATOR_WAREHOUSE = {
 // Memo
 export const MEMO = {
   id: 34,
+  name: language.t('field.displayType.memo'),
   isSupported: true,
   valueType: 'STRING',
   componentPath: 'FieldTextLong',
@@ -210,6 +232,7 @@ export const MEMO = {
 // Float Number
 export const NUMBER = {
   id: 22,
+  name: language.t('field.displayType.number'),
   isSupported: true,
   valueType: 'DECIMAL',
   componentPath: 'FieldNumber',
@@ -219,6 +242,7 @@ export const NUMBER = {
 // Printer Name
 export const PRINTER_NAME = {
   id: 42,
+  name: language.t('field.displayType.printerName'),
   isSupported: true,
   valueType: 'STRING',
   componentPath: 'FieldText',
@@ -228,6 +252,7 @@ export const PRINTER_NAME = {
 // Product Attribute
 export const PRODUCT_ATTRIBUTE = {
   id: 35,
+  name: language.t('field.displayType.productAttribute'),
   isSupported: true,
   valueType: 'INTEGER',
   componentPath: 'FieldProductAttribute',
@@ -237,6 +262,7 @@ export const PRODUCT_ATTRIBUTE = {
 // Quantity
 export const QUANTITY = {
   id: 29,
+  name: language.t('field.displayType.quantity'),
   isSupported: true,
   valueType: 'DECIMAL',
   componentPath: 'FieldNumber',
@@ -246,6 +272,7 @@ export const QUANTITY = {
 // Search
 export const SEARCH = {
   id: 30,
+  name: language.t('field.displayType.search'),
   isSupported: true,
   valueType: 'INTEGER',
   componentPath: 'FieldSearch',
@@ -255,6 +282,7 @@ export const SEARCH = {
 // Char (display type String)
 export const CHAR = {
   id: 10,
+  name: language.t('field.displayType.charString'),
   isSupported: true,
   valueType: 'STRING',
   componentPath: 'FieldText',
@@ -264,6 +292,7 @@ export const CHAR = {
 // Table List
 export const TABLE = {
   id: 18,
+  name: language.t('field.displayType.table'),
   isSupported: true,
   valueType: 'INTEGER',
   componentPath: 'FieldSelect',
@@ -273,6 +302,7 @@ export const TABLE = {
 // Table Dir
 export const TABLE_DIRECT = {
   id: 19,
+  name: language.t('field.displayType.tableDirect'),
   isSupported: true,
   valueType: 'INTEGER',
   componentPath: 'FieldSelect',
@@ -282,6 +312,7 @@ export const TABLE_DIRECT = {
 // Text
 export const TEXT = {
   id: 14,
+  name: language.t('field.displayType.text'),
   isSupported: true,
   valueType: 'STRING',
   componentPath: 'FieldText',
@@ -291,6 +322,7 @@ export const TEXT = {
 // Text Long
 export const TEXT_LONG = {
   id: 36,
+  name: language.t('field.displayType.textLong'),
   isSupported: true,
   valueType: 'STRING',
   componentPath: 'FieldTextLong',
@@ -300,6 +332,7 @@ export const TEXT_LONG = {
 // Time
 export const TIME = {
   id: 24,
+  name: language.t('field.displayType.time'),
   isSupported: true,
   valueType: 'DATE',
   componentPath: 'FieldTime',
@@ -309,6 +342,7 @@ export const TIME = {
 // URL
 export const URL = {
   id: 40,
+  name: language.t('field.displayType.url'),
   isSupported: true,
   valueType: 'STRING',
   componentPath: 'FieldUrl',
@@ -318,6 +352,7 @@ export const URL = {
 // Yes No
 export const YES_NO = {
   id: 20,
+  name: language.t('field.displayType.yesNo'),
   isSupported: true,
   valueType: 'BOOLEAN',
   componentPath: 'FieldYesNo',

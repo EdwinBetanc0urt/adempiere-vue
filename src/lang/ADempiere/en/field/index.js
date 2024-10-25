@@ -17,6 +17,7 @@
  */
 
 import businessPartner from './businessPartner.ts'
+import displayType from './displayType.ts'
 import product from './product.ts'
 import productAttribute from './productAttribute'
 import warehouseLocator from './warehouseLocator'
@@ -27,6 +28,7 @@ import payment from './payment.ts'
 
 export default {
   businessPartner,
+  displayType,
   field: 'Field',
   info: 'Information',
   calculator: 'Calculator',

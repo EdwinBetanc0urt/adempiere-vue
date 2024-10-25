@@ -59,6 +59,15 @@
         </el-form-item>
 
         <el-form-item
+          :label="$t('field.displayType.displayType')"
+          class="justify-text"
+        >
+          <b>
+            {{ fieldAttributes.displayTypeName }}
+          </b>
+        </el-form-item>
+
+        <el-form-item
           v-if="!isEmptyValue(valueField)"
           :label="$t('fieldOptions.info.currentValue')"
           class="justify-text"
