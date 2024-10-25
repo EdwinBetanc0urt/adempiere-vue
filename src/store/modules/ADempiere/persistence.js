@@ -404,7 +404,7 @@ const persistence = {
                 })
                 response.type = 'createEntity'
 
-                const attributesRecord = response.values
+                const attributesRecord = response.values || {}
 
                 // add display column to current record
                 if (key_columns.length === 1) {
