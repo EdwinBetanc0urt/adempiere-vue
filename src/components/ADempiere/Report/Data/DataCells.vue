@@ -246,21 +246,26 @@ export default defineComponent({
         .then(response => {
           const { zoom_windows } = response
           let listZoom = zoom_windows
-          if (listZoom.length > 1) {
+          // TODO: Add support to row report
+          const salesTransaction = isSalesTransaction({
+            // parentUuid: uuid,
+            containerUuid: props.containerUuid
+          })
+
+          // filter windows
+          if (listZoom.length > 1 && !isEmptyValue(salesTransaction)) {
             listZoom = zoom_windows.filter(zoom => {
               const {
-                uuid,
-                is_sales_transaction
+                // is_sales_transaction,
+                is_purchase
               } = zoom
-              const salesTransaction = isSalesTransaction({
-                parentUuid: uuid,
-                containerUuid: props.containerUuid
-              })
-              if (is_sales_transaction === salesTransaction) {
-                return zoom
+              if (!is_purchase === salesTransaction) {
+                return true
               }
+              return false
             })
           }
+
           const listZoomWindows = listZoom.map(listZoom => {
             return {
               ...listZoom,
@@ -270,9 +275,6 @@ export default defineComponent({
           })
 
           props.rowData.zoom_windows = listZoomWindows
-          isLoaded.value = false
-        })
-        .catch(() => {
           isLoaded.value = false
         })
         .finally(() => {

@@ -168,30 +168,41 @@
 </template>
 
 <script>
+import { defineComponent, computed, ref, nextTick } from '@vue/composition-api'
+
 import store from '@/store'
 import language from '@/lang'
+
+// Components and Mixins
 import marked from 'marked'
-import { defineComponent, computed, ref, nextTick } from '@vue/composition-api'
-import { isEmptyValue } from '@/utils/ADempiere/valueUtils'
+import markdown from '@/components/ADempiere/MarkDown'
+import contactSend from './contactSend'
+import typeNotify from './typeNotify'
+
+// Constants
 import { config } from '@/utils/ADempiere/config'
-import { REPORT_EXPORT_TYPES } from '@/utils/ADempiere/constants/report'
-import { showNotificationReport } from '@/utils/ADempiere/notification.js'
-import { showNotification } from '@/utils/ADempiere/notification'
+import { REPORT_EXPORT_TYPE_XLSX } from '@/utils/ADempiere/constants/report'
+
+// API Request Methods
 import {
   requestShareResources
 } from '@/api/ADempiere/file-management/resource-reference.ts'
+
+// Utils and Helper Methods
+import { isEmptyValue } from '@/utils/ADempiere/valueUtils'
+import { showNotificationReport } from '@/utils/ADempiere/notification.js'
+import { showNotification } from '@/utils/ADempiere/notification'
 import { copyToClipboard } from '@/utils/ADempiere/coreUtils.js'
-import contactSend from './contactSend'
-import typeNotify from './typeNotify'
-import markdown from '@/components/ADempiere/MarkDown'
 
 export default defineComponent({
-  name: 'dialogShareReport',
+  name: 'DialogShareReport',
+
   components: {
     contactSend,
     typeNotify,
     markdown
   },
+
   props: {
     containerUuid: {
       type: String,
@@ -216,6 +227,7 @@ export default defineComponent({
       default: false
     }
   },
+
   setup(props) {
     const shortsKey = computed(() => {
       return {
@@ -239,7 +251,7 @@ export default defineComponent({
     const checkedItemGeneral = ref(0)
     const checkedItem = ref(0)
     const printFormat = computed(() => {
-      return REPORT_EXPORT_TYPES.filter(type => type.type === 'xlsx')
+      return REPORT_EXPORT_TYPE_XLSX
     })
     const printFormatValue = ref('xlsx')
     const linkShare = ref('')

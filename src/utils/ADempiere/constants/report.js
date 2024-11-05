@@ -38,6 +38,12 @@ export const staticReportRoutes = [
   }
 ]
 
+export const REPORT_EXPORT_TYPE_XLSX = {
+  name: language.t('report.reportExportTypes.xlsx.name'),
+  description: language.t('report.reportExportTypes.xlsx.description'),
+  type: language.t('report.reportExportTypes.xlsx.type')
+}
+
 export const REPORT_EXPORT_TYPES = [
   {
     name: language.t('report.reportExportTypes.ps.name'),
@@ -79,11 +85,7 @@ export const REPORT_EXPORT_TYPES = [
     description: language.t('report.reportExportTypes.xls.description'),
     type: language.t('report.reportExportTypes.xls.type')
   },
-  {
-    name: language.t('report.reportExportTypes.xlsx.name'),
-    description: language.t('report.reportExportTypes.xlsx.description'),
-    type: language.t('report.reportExportTypes.xlsx.type')
-  },
+  REPORT_EXPORT_TYPE_XLSX,
   {
     name: language.t('report.reportExportTypes.arxml.name'),
     description: language.t('report.reportExportTypes.arxml.description'),
