@@ -221,11 +221,17 @@ export default {
               })
 
               // set context values
-              const parentValues = getContextAttributes({
-                parentUuid: windowUuid,
+              const parentValues = rootGetters.getValuesView({
                 containerUuid: tabAssociatedUuid,
-                contextColumnNames: relatedColumns
+                isOnlyColumns: true,
+                isOnlyWithValue: true,
+                format: 'array'
               })
+              // const parentValues = getContextAttributes({
+              //   parentUuid: windowUuid,
+              //   containerUuid: tabAssociatedUuid,
+              //   contextColumnNames: relatedColumns
+              // })
               parentValues.push({
                 columnName: COLUMNNAME_AD_Table_ID,
                 value: storedTab.table.internal_id
@@ -493,11 +499,17 @@ export default {
               })
 
               // set context values
-              const parentValues = getContextAttributes({
-                parentUuid: windowUuid,
+              const parentValues = rootGetters.getValuesView({
                 containerUuid: tabAssociatedUuid,
-                contextColumnNames: relatedColumns
+                isOnlyColumns: true,
+                isOnlyWithValue: true,
+                format: 'array'
               })
+              // const parentValues = getContextAttributes({
+              //   parentUuid: windowUuid,
+              //   containerUuid: tabAssociatedUuid,
+              //   contextColumnNames: relatedColumns
+              // })
               parentValues.push({
                 columnName: COLUMNNAME_AD_Table_ID,
                 value: storedTab.table.internal_id
