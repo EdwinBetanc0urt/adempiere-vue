@@ -24,6 +24,7 @@ import {
   DATE, DATE_PLUS_TIME, TIME,
   AMOUNT, COSTS_PLUS_PRICES, NUMBER, QUANTITY,
   CHAR, MEMO, TEXT, TEXT_LONG,
+  BUTTON, ID,
   ACCOUNT_ELEMENT, LOCATION_ADDRESS, // Custom lookups
   LOCATOR_WAREHOUSE, PRODUCT_ATTRIBUTE, // Custom lookups of Producs
   LIST, TABLE, TABLE_DIRECT, SEARCH, // Standard lookups
@@ -80,6 +81,8 @@ export function formatField({
   let formattedValue
   switch (displayType) {
     case ACCOUNT_ELEMENT.id:
+    case BUTTON.id:
+    case ID.id:
     case LIST.id:
     case LOCATION_ADDRESS.id:
     case LOCATOR_WAREHOUSE.id:
