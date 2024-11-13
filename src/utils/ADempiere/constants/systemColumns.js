@@ -36,7 +36,7 @@ export const COLUMNNAME_AD_Table_ID = 'AD_Table_ID'
  * @deprecated
  */
 export const RECORD_ID = 'Record_ID'
-export const COLUMNNAME_RECORD_ID = 'Record_ID'
+export const COLUMNNAME_Record_ID = 'Record_ID'
 
 export const COUNTRY = 'C_Country_ID'
 

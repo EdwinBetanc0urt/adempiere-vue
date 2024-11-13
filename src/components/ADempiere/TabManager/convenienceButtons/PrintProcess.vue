@@ -89,19 +89,27 @@ import store from '@/store'
 
 // Constants
 import {
+  COLUMNNAME_AD_Table_ID, COLUMNNAME_Record_ID
+} from '@/utils/ADempiere/constants/systemColumns'
+import {
   FINANCIAL_REPORT_TABLE_NAME
 } from '@/utils/ADempiere/dictionary/report/financialReport.ts'
 
 // Utils and Helper Methods
 import { isEmptyValue } from '@/utils/ADempiere/valueUtils'
 import { showNotification } from '@/utils/ADempiere/notification.js'
+import { getContextAttributes } from '@/utils/ADempiere/contextUtils/contextAttributes'
 
+// Components and Mixins
 import DialogLegacy from '@/components/ADempiere/Report/Data/Dialog.vue'
+
 export default defineComponent({
   name: 'PrintProcess',
+
   components: {
     DialogLegacy
   },
+
   props: {
     parentUuid: {
       type: [String, Number],
@@ -132,9 +140,27 @@ export default defineComponent({
     /**
      * Computed
      */
+    const relatedColumsNames = computed(() => {
+      let relatedColumns = []
+      const parentColumns = props.tabAttributes.fieldsList
+        .filter(fieldItem => {
+          return fieldItem.is_parent || fieldItem.is_key || fieldItem.is_mandatory
+        })
+        .map(fieldItem => {
+          return fieldItem.columnName
+        })
+
+      if (!isEmptyValue(props.tabAttributes.parent_column_name)) {
+        relatedColumns = relatedColumns.push(props.tabAttributes.parent_column_name)
+      }
+      relatedColumns = relatedColumns.concat(parentColumns).sort()
+      return relatedColumns
+    })
 
     const currentTableName = computed(() => {
-      if (isEmptyValue(props.tabAttributes.table) || isEmptyValue(props.tabAttributes.table.table_name)) return props.tabAttributes.table_name
+      if (isEmptyValue(props.tabAttributes.table) || isEmptyValue(props.tabAttributes.table.table_name)) {
+        return props.tabAttributes.table_name
+      }
       return props.tabAttributes.table.table_name
     })
     const recordId = computed(() => {
@@ -171,6 +197,26 @@ export default defineComponent({
     })
     function printProcess() {
       store.commit('setIsLoadingDialog', false)
+
+      // set context values
+      const parentValues = getContextAttributes({
+        parentUuid: props.parentUuid,
+        containerUuid: containerUuid,
+        contextColumnNames: relatedColumsNames.value
+      })
+      parentValues.push({
+        columnName: COLUMNNAME_AD_Table_ID,
+        value: props.tabAttributes.table.internal_id
+      })
+      parentValues.push({
+        columnName: COLUMNNAME_Record_ID,
+        value: recordId.value
+      })
+      store.dispatch('updateValuesOfContainer', {
+        containerUuid: process.uuid,
+        attributes: parentValues
+      })
+
       if (!isEmptyValue(selectionsList) && !isEmptyValue(selectionsList.value) && selectionsList.value.length > 1) {
         store.commit('setViewDialog', true)
       } else {
@@ -186,8 +232,9 @@ export default defineComponent({
         isLoading.value = true
         store.dispatch('runReport', {
           containerUuid: process.uuid,
-          recordId: recordId.value,
           reportId: process.internal_id,
+          //
+          recordId: recordId.value,
           tableName: currentTableName.value
         })
           .finally(() => {

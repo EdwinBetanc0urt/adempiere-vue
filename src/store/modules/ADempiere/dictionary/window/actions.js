@@ -24,7 +24,10 @@ import store from '@/store'
 import { requestWindowMetadata } from '@/api/ADempiere/dictionary/window.ts'
 
 // Constants
-import { CLIENT, DOCUMENT_ACTION, DOCUMENT_STATUS } from '@/utils/ADempiere/constants/systemColumns'
+import {
+  CLIENT, DOCUMENT_ACTION, DOCUMENT_STATUS,
+  COLUMNNAME_AD_Table_ID, COLUMNNAME_Record_ID
+} from '@/utils/ADempiere/constants/systemColumns'
 import { DISPLAY_COLUMN_PREFIX, IS_ADVANCED_QUERY } from '@/utils/ADempiere/dictionaryUtils'
 import { ROW_ATTRIBUTES } from '@/utils/ADempiere/tableUtils'
 import { ACTION_None } from '@/utils/ADempiere/dictionary/workflow'
@@ -176,10 +179,15 @@ export default {
               return
             }
 
-            const recordUuid = rootGetters.getUuidOfContainer(tabAssociatedUuid)
-
             const storedTab = rootGetters.getStoredTab(windowUuid, tabAssociatedUuid)
             const { table_name } = storedTab
+
+            const recordUuid = rootGetters.getUuidOfContainer(tabAssociatedUuid)
+            const recordId = rootGetters.getIdOfContainer({
+              containerUuid: tabAssociatedUuid,
+              tableName: table_name
+            })
+
             const { code } = rootGetters.getStoredReport(process.uuid)
             if (code === FINANCIAL_REPORT_CODE) {
               dispatch('startReport', {
@@ -194,6 +202,7 @@ export default {
                 parentUuid: tabUuid,
                 containerUuid: process.uuid,
                 recordUuid,
+                recordId,
                 tableName: table_name
               })
             }
@@ -205,11 +214,25 @@ export default {
             containerManager: containerManagerReport,
             doneMethod: doneMethodByReport,
             beforeOpen: ({ parentUuid: tabAssociatedUuid, containerUuid }) => {
+              const storedTab = rootGetters.getStoredTab(windowUuid, tabAssociatedUuid)
+              const recordId = rootGetters.getIdOfContainer({
+                containerUuid: tabAssociatedUuid,
+                tableName: storedTab.table_name
+              })
+
               // set context values
               const parentValues = getContextAttributes({
                 parentUuid: windowUuid,
                 containerUuid: tabAssociatedUuid,
                 contextColumnNames: relatedColumns
+              })
+              parentValues.push({
+                columnName: COLUMNNAME_AD_Table_ID,
+                value: storedTab.table.internal_id
+              })
+              parentValues.push({
+                columnName: COLUMNNAME_Record_ID,
+                value: recordId
               })
 
               dispatch('updateValuesOfContainer', {
@@ -344,12 +367,27 @@ export default {
               })
             },
             beforeOpen: ({ parentUuid: tabAssociatedUuid, containerUuid }) => {
+              const storedTab = rootGetters.getStoredTab(windowUuid, tabAssociatedUuid)
+              const recordId = rootGetters.getIdOfContainer({
+                containerUuid: tabAssociatedUuid,
+                tableName: storedTab.table_name
+              })
+
               // set context values
               const parentValues = getContextAttributes({
                 parentUuid: windowUuid,
                 containerUuid: tabAssociatedUuid,
                 contextColumnNames: relatedColumns
               })
+              parentValues.push({
+                columnName: COLUMNNAME_AD_Table_ID,
+                value: storedTab.table.internal_id
+              })
+              parentValues.push({
+                columnName: COLUMNNAME_Record_ID,
+                value: recordId
+              })
+
               let documentAction = getContext({
                 parentUuid: windowUuid,
                 containerUuid: tabAssociatedUuid,
@@ -448,11 +486,25 @@ export default {
               })
             },
             beforeOpen: ({ parentUuid: tabAssociatedUuid, containerUuid }) => {
+              const storedTab = rootGetters.getStoredTab(windowUuid, tabAssociatedUuid)
+              const recordId = rootGetters.getIdOfContainer({
+                containerUuid: tabAssociatedUuid,
+                tableName: storedTab.table_name
+              })
+
               // set context values
               const parentValues = getContextAttributes({
                 parentUuid: windowUuid,
                 containerUuid: tabAssociatedUuid,
                 contextColumnNames: relatedColumns
+              })
+              parentValues.push({
+                columnName: COLUMNNAME_AD_Table_ID,
+                value: storedTab.table.internal_id
+              })
+              parentValues.push({
+                columnName: COLUMNNAME_Record_ID,
+                value: recordId
               })
 
               dispatch('updateValuesOfContainer', {

@@ -18,6 +18,7 @@
 
 // Constants
 import { FIELDS_DATE, FIELDS_DECIMALS } from '@/utils/ADempiere/references.js'
+import { COLUMNNAME_Record_ID } from '@/utils/ADempiere/constants/systemColumns'
 
 // Utils and Helper Methods
 import { isEmptyValue } from '@/utils/ADempiere/valueUtils.js'
@@ -170,7 +171,7 @@ export default {
             type: 'date',
             value: value
           }
-        } else if (isDecimalField) {
+        } else if (isDecimalField && ![COLUMNNAME_Record_ID].includes(columnName)) {
           reportParameters[columnName] = {
             type: 'decimal',
             value: value

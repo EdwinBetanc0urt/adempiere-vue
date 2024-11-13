@@ -63,7 +63,7 @@ import fieldMixinDisplayColumn from '@/components/ADempiere/FieldDefinition/mixi
 import {
   TRUE_STRING, FALSE_STRING
 } from '@/utils/ADempiere/formatValue/booleanFormat'
-import { COLUMNNAME_RECORD_ID } from '@/utils/ADempiere/constants/systemColumns'
+import { COLUMNNAME_Record_ID } from '@/utils/ADempiere/constants/systemColumns'
 import { IDENTIFIER_COLUMN_SUFFIX } from '@/utils/ADempiere/dictionaryUtils'
 
 // Utils and Helpers Methods
@@ -105,7 +105,7 @@ export default {
 
   computed: {
     isDisabledButton() {
-      return (this.metadata.readonly || this.isDisableAction) && !['Posted', COLUMNNAME_RECORD_ID].includes(this.metadata.columnName)
+      return (this.metadata.readonly || this.isDisableAction) && !['Posted', COLUMNNAME_Record_ID].includes(this.metadata.columnName)
     },
     isDisableAction() {
       return this.actionAssociated.isEnabled && !this.actionAssociated.isEnabled()
@@ -169,7 +169,7 @@ export default {
             return isShowAcct
           }
         }
-      } else if (this.metadata.columnName === COLUMNNAME_RECORD_ID) {
+      } else if (this.metadata.columnName === COLUMNNAME_Record_ID) {
         return {
           // is: 'svg-icon',
           // 'icon-class': 'zoom-in',
@@ -327,7 +327,7 @@ export default {
     },
 
     currentTableId() {
-      if (this.metadata.displayed && this.metadata.columnName === COLUMNNAME_RECORD_ID) {
+      if (this.metadata.displayed && this.metadata.columnName === COLUMNNAME_Record_ID) {
         const { containerUuid, inTable } = this.metadata
         // table records values
         if (inTable) {
@@ -353,7 +353,7 @@ export default {
 
   watch: {
     contextAttributes(newValue, oldValue) {
-      if (this.metadata.columnName === COLUMNNAME_RECORD_ID && !isSameValues(newValue, oldValue)) {
+      if (this.metadata.columnName === COLUMNNAME_Record_ID && !isSameValues(newValue, oldValue)) {
         if (!isEmptyValue(newValue)) {
           this.setDefaultValue()
         }
@@ -369,7 +369,7 @@ export default {
   },
 
   beforeMount() {
-    if (this.metadata.displayed && this.metadata.columnName === COLUMNNAME_RECORD_ID) {
+    if (this.metadata.displayed && this.metadata.columnName === COLUMNNAME_Record_ID) {
       if (!this.emptyValue && typeof this.value === 'number') {
         if (isEmptyValue(this.displayedValue)) {
           // request lookup
