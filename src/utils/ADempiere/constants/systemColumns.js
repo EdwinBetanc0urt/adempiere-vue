@@ -54,9 +54,17 @@ export const VALUE = 'Value'
 
 export const DOCUMENT_NO = 'DocumentNo'
 
+/**
+ * @deprecated
+ */
 export const DOCUMENT_STATUS = 'DocStatus'
+export const COLUMNNAME_DocStatus = 'DocStatus'
 
+/**
+ * @deprecated
+ */
 export const DOCUMENT_ACTION = 'DocAction'
+export const COLUMNNAME_DocAction = 'DocAction'
 
 export const STD_PRECISION = 'StdPrecision'
 

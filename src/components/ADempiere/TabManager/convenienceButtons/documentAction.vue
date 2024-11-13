@@ -108,7 +108,7 @@
           type="primary"
           class="button-base-icon"
           icon="el-icon-check"
-          @click="sendAction()"
+          @click="startDocumentAction()"
         />
       </div>
     </el-popover>
@@ -131,7 +131,10 @@ import language from '@/lang'
 import store from '@/store'
 
 // Constants
-import { DOCUMENT_ACTION, DOCUMENT_STATUS } from '@/utils/ADempiere/constants/systemColumns'
+import {
+  COLUMNNAME_DocAction, COLUMNNAME_DocStatus,
+  LOG_COLUMNS_NAME_LIST
+} from '@/utils/ADempiere/constants/systemColumns'
 import { DISPLAY_COLUMN_PREFIX } from '@/utils/ADempiere/dictionaryUtils'
 
 // Components and Mixins
@@ -144,6 +147,7 @@ import {
   refreshRecord
 } from '@/utils/ADempiere/dictionary/window'
 import { isRunableDocumentAction } from '@/utils/ADempiere/dictionary/workflow'
+import { showMessage } from '@/utils/ADempiere/notification'
 
 export default defineComponent({
   name: 'DocumentAction',
@@ -204,7 +208,7 @@ export default defineComponent({
       return store.getters.getValueOfFieldOnContainer({
         parentUuid: props.parentUuid,
         containerUuid,
-        columnName: DOCUMENT_STATUS
+        columnName: COLUMNNAME_DocStatus
       })
     })
 
@@ -212,7 +216,7 @@ export default defineComponent({
       return store.getters.getValueOfFieldOnContainer({
         parentUuid: props.parentUuid,
         containerUuid,
-        columnName: DOCUMENT_ACTION
+        columnName: COLUMNNAME_DocAction
       })
     })
 
@@ -220,7 +224,7 @@ export default defineComponent({
       return store.getters.getValueOfFieldOnContainer({
         containerUuid: props.parentUuid, // tab uuid
         // containerUuid,
-        columnName: DISPLAY_COLUMN_PREFIX + DOCUMENT_ACTION
+        columnName: DISPLAY_COLUMN_PREFIX + COLUMNNAME_DocAction
       })
     })
 
@@ -254,7 +258,7 @@ export default defineComponent({
       if (isEmptyValue(defaultDocumentAction.value)) {
         return store.getters.getValueOfFieldOnContainer({
           containerUuid: props.tabAttributes.uuid,
-          columnName: DOCUMENT_ACTION
+          columnName: COLUMNNAME_DocAction
         })
       }
       return defaultDocumentAction.value.value
@@ -279,7 +283,7 @@ export default defineComponent({
     const currentDocStatusDisplayedValue = computed(() => {
       const displayedValue = store.getters.getValueOfFieldOnContainer({
         containerUuid,
-        columnName: DISPLAY_COLUMN_PREFIX + DOCUMENT_STATUS
+        columnName: DISPLAY_COLUMN_PREFIX + COLUMNNAME_DocStatus
       })
       if (!isEmptyValue(displayedValue)) {
         return displayedValue
@@ -385,8 +389,68 @@ export default defineComponent({
       store.dispatch('fieldListInfo', { info })
     }
 
-    function sendAction() {
+    const isExistsChanges = computed(() => {
+      const persistenceValues = store.getters.getPersistenceAttributesChanges({
+        parentUuid: props.parentUuid,
+        containerUuid: props.tabAttributes.uuid,
+        recordUuid: recordUuid.value
+      })
+      return !isEmptyValue(persistenceValues)
+    })
+
+    const emptyMandatoryFields = computed(() => {
+      return store.getters.getTabFieldsEmptyMandatory({
+        parentUuid: props.parentUuid,
+        containerUuid: props.tabAttributes.uuid,
+        formatReturn: false
+      }).filter(itemField => {
+        // omit send to server (to create or update) columns manage by backend
+        return itemField.is_always_updateable ||
+          !LOG_COLUMNS_NAME_LIST.includes(itemField.columnName)
+      }).map(itemField => {
+        return itemField.name
+      })
+    })
+
+    function startDocumentAction() {
       isVisibleDocAction.value = false
+      isLoadingActions.value = true
+
+      if (isExistsChanges.value) {
+        const emptyMandatory = emptyMandatoryFields.value.join(', ')
+        if (!isEmptyValue(emptyMandatory)) {
+          showMessage({
+            message: language.t('notifications.mandatoryFieldMissing') + emptyMandatory,
+            type: 'info'
+          })
+          isLoadingActions.value = false
+          return
+        }
+
+        return store.dispatch('flushPersistenceQueue', {
+          parentUuid: props.parentUuid,
+          containerUuid: props.tabAttributes.uuid,
+          tabId: props.tabAttributes.internal_id,
+          tableName: props.tabAttributes.table_name,
+          recordUuid: recordUuid.value,
+          recordId: recordId.value
+        })
+          .then(response => {
+            processDocumentWithAction()
+          })
+          .catch(error => {
+            isLoadingActions.value = false
+            // console.error('Error saving record', error.message)
+            showMessage({
+              message: error.message,
+              type: 'error'
+            })
+          })
+      }
+      processDocumentWithAction()
+    }
+
+    function processDocumentWithAction() {
       isLoadingActions.value = true
       store.dispatch('runDocumentActionOnServer', {
         parentUuid: props.parentUuid,
@@ -476,7 +540,7 @@ export default defineComponent({
       // Methods
       displayDocumentActions,
       handleCommandActions,
-      sendAction,
+      startDocumentAction,
       message
     }
   }

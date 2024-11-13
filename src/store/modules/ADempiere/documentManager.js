@@ -19,7 +19,9 @@
 import Vue from 'vue'
 
 // Constants
-import { DOCUMENT_STATUS } from '@/utils/ADempiere/constants/systemColumns'
+import {
+  COLUMNNAME_DocStatus
+} from '@/utils/ADempiere/constants/systemColumns'
 
 // API Request Methods
 import {
@@ -177,6 +179,7 @@ const documentManager = {
 
             if (isError) {
               type = 'error'
+              console.warn(`Error Run Doc Action: ${text}.`)
             }
 
             showNotification({
@@ -204,7 +207,7 @@ const documentManager = {
             const documentStatus = getters.getValueOfFieldOnContainer({
               // parentUuid: parentUuid,
               containerUuid: containerUuid,
-              columnName: DOCUMENT_STATUS
+              columnName: COLUMNNAME_DocStatus
             })
 
             if (!isEmptyValue(documentStatus)) {

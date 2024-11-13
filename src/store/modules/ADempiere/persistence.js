@@ -236,7 +236,7 @@ const persistence = {
       parentUuid,
       containerUuid,
       tabId,
-      reccordId,
+      recordId,
       tableName,
       recordUuid,
       attributesList
@@ -281,7 +281,7 @@ const persistence = {
           if (!isEmptyValue(recordUuid) && recordUuid !== 'create-new') {
             // Update existing entity
             // if (key_columns.length > 1) {
-            //   reccordId = 0
+            //   recordId = 0
             // }
             const recordAttributes = {}
             attributesList.forEach(attribute => {
@@ -321,7 +321,7 @@ const persistence = {
               })
             }
             return updateEntity({
-              reccordId,
+              recordId,
               tabId,
               recordUuid,
               recordAttributes,

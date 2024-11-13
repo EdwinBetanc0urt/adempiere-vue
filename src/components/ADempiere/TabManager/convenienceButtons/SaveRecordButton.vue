@@ -114,15 +114,20 @@ export default defineComponent({
       return isExistsChanges.value
     })
 
-    const reccordId = computed(() => {
+    const recordId = computed(() => {
       const { table } = tabAttributes.value
       const { key_columns, table_name } = table
       const currentReccord = store.getters.getTabCurrentRow({
         containerUuid: tabAttributes.value.containerUuid
       })
-      if (!isEmptyValue(currentReccord[table_name + '_ID'])) return currentReccord[table_name + '_ID']
-      if (!isEmptyValue(key_columns)) return currentReccord[key_columns[key_columns.length - 1]]
-      return 1
+      if (!isEmptyValue(currentReccord[table_name + '_ID'])) {
+        return currentReccord[table_name + '_ID']
+      }
+      if (!isEmptyValue(key_columns)) {
+        const keyIndex = key_columns.length - 1
+        return currentReccord[key_columns.at(keyIndex)]
+      }
+      return -1
     })
 
     function saveChanges() {
@@ -150,7 +155,7 @@ export default defineComponent({
         tabId: tabAttributes.value.internal_id,
         tableName: tabAttributes.value.table_name,
         recordUuid: recordUuid.value,
-        reccordId: reccordId.value
+        recordId: recordId.value
       })
         .then(response => {
           const {

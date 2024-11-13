@@ -378,7 +378,7 @@ export default defineComponent({
       return {}
     })
 
-    const reccordId = computed(() => {
+    const recordId = computed(() => {
       if (isEmptyValue(currentTabPanelInfo.value)) return 1
       const { table } = currentTabPanelInfo.value
       const { key_columns, table_name } = table
@@ -1053,7 +1053,7 @@ export default defineComponent({
         tabId: currentTab.internal_id,
         tableName: currentTab.table_name,
         recordUuid: undefined,
-        reccordId: -1
+        recordId: -1
       })
         .then(response => {
           const {
@@ -1147,7 +1147,7 @@ export default defineComponent({
       containerInfo,
       currentTabPanelInfo,
       emptyMandatoryFields,
-      reccordId,
+      recordId,
       // methods
       theAction,
       handleClick,
