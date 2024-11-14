@@ -256,6 +256,14 @@ export class evaluator {
     // if both values are empty, but not equal (" ", NaN, null, undefined)
     const isBothEmptyValues = isEmptyValue(value1) && isEmptyValue(value2)
 
+    // parse to number to evaluate "0" with "0.00"
+    if (!Number.isNaN(value1)) {
+      value1 = Number(value1)
+    }
+    if (!Number.isNaN(value2)) {
+      value2 = Number(value2)
+    }
+
     let isValueLogic
     switch (operand) {
       case '=':
