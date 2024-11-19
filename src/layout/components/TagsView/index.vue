@@ -106,15 +106,20 @@ import { generateTitle } from '@/utils/i18n'
 import path from 'path'
 import draggable from 'vuedraggable'
 
-// constants
-import { REPORT_VIEWER_NAME } from '@/utils/ADempiere/constants/report'
+// Constants
+import {
+  REPORT_VIEWER_NAME
+} from '@/utils/ADempiere/dictionary/report'
 
-// utils and helper methods
+// Utils and Helper Methods
 import { capitalize } from '@/utils/ADempiere/formatValue/stringFormat'
-import { isEmptyValue } from '@/utils/ADempiere'
+import { isEmptyValue } from '@/utils/ADempiere/valueUtils'
 
 export default {
-  components: { ScrollPane, draggable },
+  components: {
+    ScrollPane, draggable
+  },
+
   data() {
     return {
       visible: false,
@@ -126,6 +131,7 @@ export default {
       recordsModifiedWindow: []
     }
   },
+
   computed: {
     isMobile() {
       return this.$store.state.app.device === 'mobile'
@@ -137,6 +143,7 @@ export default {
       return this.$store.state.permission.routes
     }
   },
+
   watch: {
     $route() {
       this.addTags()
@@ -150,10 +157,12 @@ export default {
       }
     }
   },
+
   mounted() {
     this.initTags()
     this.addTags()
   },
+
   methods: {
     generateTitle, // generateTitle by vue-i18n
     isActive(route) {

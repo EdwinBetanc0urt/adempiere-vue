@@ -1,7 +1,10 @@
 import router from '@/router'
 
-// constants
-import { REPORT_VIEWER_NAME, REPORT_VIEWER_ENGINE_NAME } from '@/utils/ADempiere/constants/report'
+// Constants
+import {
+  REPORT_VIEWER_NAME,
+  REPORT_VIEWER_ENGINE_NAME
+} from '@/utils/ADempiere/dictionary/report'
 
 const state = {
   visitedViews: [],

@@ -22,7 +22,7 @@ import store from '@/store'
 import { requestSaveProcessCustomization } from '@/api/ADempiere/user-customization/processes'
 
 // Constants
-import { REPORT_EXPORT_TYPES } from '@/utils/ADempiere/constants/report'
+import { REPORT_EXPORT_TYPES } from '@/utils/ADempiere/dictionary/report'
 import { BUTTON } from '@/utils/ADempiere/references'
 
 // Utils and Helpers Methods

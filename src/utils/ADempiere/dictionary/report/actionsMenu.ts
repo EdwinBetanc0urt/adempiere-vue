@@ -21,7 +21,9 @@ import router from '@/router'
 import store from '@/store'
 
 // Constants
-import { REPORT_VIEWER_NAME } from '@/utils/ADempiere/constants/report'
+import {
+  REPORT_VIEWER_NAME
+} from '@/utils/ADempiere/dictionary/report'
 
 // Utils and Helper Methods
 import { isEmptyValue } from '@/utils/ADempiere/valueUtils.js'

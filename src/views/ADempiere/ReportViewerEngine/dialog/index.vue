@@ -181,7 +181,7 @@ import typeNotify from './typeNotify'
 
 // Constants
 import { config } from '@/utils/ADempiere/config'
-import { REPORT_EXPORT_TYPE_XLSX } from '@/utils/ADempiere/constants/report'
+import { REPORT_EXPORT_TYPE_XLSX } from '@/utils/ADempiere/dictionary/report'
 
 // API Request Methods
 import {

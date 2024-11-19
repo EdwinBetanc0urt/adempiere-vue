@@ -19,6 +19,7 @@
 // import Vue from 'vue'
 import router from '@/router'
 import language from '@/lang'
+
 // API Request Methods
 import {
   generateReportRequest,
@@ -27,10 +28,10 @@ import {
 
 // Constants
 import {
-  DEFAULT_REPORT_TYPE
-} from '@/utils/ADempiere/dictionary/report.js'
-import { REPORT_VIEWER_SUPPORTED_FORMATS } from '@/utils/ADempiere/dictionary/report.js'
-import { REPORT_VIEWER_NAME } from '@/utils/ADempiere/constants/report'
+  DEFAULT_REPORT_TYPE,
+  REPORT_VIEWER_NAME,
+  REPORT_VIEWER_SUPPORTED_FORMATS
+} from '@/utils/ADempiere/dictionary/report'
 
 // Utils
 import { buildLinkHref } from '@/utils/ADempiere/resource.js'

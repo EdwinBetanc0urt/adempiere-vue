@@ -99,8 +99,9 @@ import ModalDialog from '@/components/ADempiere/ModalDialog/index.vue'
 import OptionsReport from '@/components/ADempiere/ReportManager/Setup/optionsReport.vue'
 import TitleAndHelp from '@/components/ADempiere/TitleAndHelp/index.vue'
 import dialogShareReport from '@/views/ADempiere/ReportViewerEngine/dialog'
+
 // Constants
-import { DEFAULT_REPORT_TYPE } from '@/utils/ADempiere/dictionary/report.js'
+import { DEFAULT_REPORT_TYPE } from '@/utils/ADempiere/dictionary/report'
 
 // Utils and Helper Methods
 import { convertObjectToKeyValue } from '@/utils/ADempiere/valueFormat.js'

@@ -31,7 +31,7 @@ import {
 import { showNotification } from '@/utils/ADempiere/notification.js'
 import {
   containerManager
-} from '@/utils/ADempiere/dictionary/report.js'
+} from '@/utils/ADempiere/dictionary/report'
 import {
   runReport,
   runReportAs,

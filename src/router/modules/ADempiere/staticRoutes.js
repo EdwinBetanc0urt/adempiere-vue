@@ -1,7 +1,7 @@
 /**
  * ADempiere-Vue (Frontend) for ADempiere ERP & CRM Smart Business Solution
  * Copyright (C) 2018-Present E.R.P. Consultores y Asociados, C.A. www.erpya.com
- * Contributor(s): Leonel Matos lMatos@eroya.com
+ * Contributor(s): Leonel Matos lMatos@erpya.com
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -22,7 +22,10 @@ import Layout from '@/layout'
 import language from '@/lang'
 
 // Constants
-import { REPORT_VIEWER_NAME, REPORT_VIEWER_ENGINE_NAME } from '@/utils/ADempiere/constants/report'
+import {
+  REPORT_VIEWER_NAME,
+  REPORT_VIEWER_ENGINE_NAME
+} from '@/utils/ADempiere/dictionary/report'
 import { REQUEST_ALL_WINDOW_ID } from '@/utils/ADempiere/dictionary/form/Issues'
 
 // Utils and Helper Methods

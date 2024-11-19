@@ -41,11 +41,12 @@ import {
 } from '@/api/ADempiere/file-management/resource-reference.ts'
 
 // Constants
-import {
-  DEFAULT_REPORT_TYPE
-} from '@/utils/ADempiere/dictionary/report.js'
 import { config } from '@/utils/ADempiere/config'
-import { REPORT_VIEWER_NAME, REPORT_VIEWER_ENGINE_NAME } from '@/utils/ADempiere/constants/report'
+import {
+  DEFAULT_REPORT_TYPE,
+  REPORT_VIEWER_NAME,
+  REPORT_VIEWER_ENGINE_NAME
+} from '@/utils/ADempiere/dictionary/report'
 
 // Utils and Helper Methods
 import { getToken } from '@/utils/auth'
@@ -59,7 +60,7 @@ import {
 import { showMessage, showNotification } from '@/utils/ADempiere/notification.js'
 import {
   containerManager
-} from '@/utils/ADempiere/dictionary/report.js'
+} from '@/utils/ADempiere/dictionary/report'
 import {
   requestShareResources
 } from '@/api/ADempiere/file-management/resource-reference.ts'

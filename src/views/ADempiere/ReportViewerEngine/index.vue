@@ -93,7 +93,7 @@ import TitleAndHelp from '@/components/ADempiere/TitleAndHelp/index.vue'
 import reportPanel from '@/views/ADempiere/ReportViewerEngine/reportPanel.vue'
 
 // Constants
-import { DEFAULT_REPORT_TYPE } from '@/utils/ADempiere/dictionary/report.js'
+import { DEFAULT_REPORT_TYPE } from '@/utils/ADempiere/dictionary/report'
 
 // Utils and Helper Methods
 import { convertObjectToKeyValue } from '@/utils/ADempiere/valueFormat.js'
