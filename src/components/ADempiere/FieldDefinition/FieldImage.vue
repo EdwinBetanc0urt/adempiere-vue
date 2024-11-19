@@ -29,6 +29,7 @@
           class="image-file"
           :alt="altImage"
           :src="pathImage"
+          :preview-src-list="previewList"
           lazy
           fit="contain"
           style="text-align: center ; height: 100px"
@@ -290,6 +291,17 @@ export default {
     },
     tableNameImage() {
       return this.currentTab.table_name.toLowerCase()
+    },
+    previewList() {
+      const imageSource = this.imageSourceSmall
+      if (!isEmptyValue(imageSource)) {
+        return [imageSource]
+      }
+      const newSoruce = this.pathImage
+      if (!isEmptyValue(newSoruce)) {
+        return [newSoruce]
+      }
+      return []
     },
     columnNameImage() {
       return this.metadata.columnName.toLowerCase()
