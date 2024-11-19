@@ -119,7 +119,7 @@ export function generateField({
   if (fieldToGenerate.display_type === BUTTON.id) {
     if ((moreAttributes.isAdvancedQuery || fieldToGenerate.is_query_criteria) &&
       fieldToGenerate.reference && fieldToGenerate.reference.reference_id > 0 && fieldToGenerate.reference.reference_value_id > 0) {
-      // overwrite if is with reference
+      // overwrite if is with reference (List, Search, Table)
       componentReference = evalutateTypeField(fieldToGenerate.reference.reference_id)
       fieldToGenerate.display_type = fieldToGenerate.reference.reference_id
       fieldToGenerate.reference = {
@@ -127,6 +127,7 @@ export function generateField({
         context_column_names: []
       }
     } else if ([columnName, fieldToGenerate.element_name].includes('PaymentRule')) {
+      // overwrite as List
       componentReference = LIST
       fieldToGenerate.display_type = LIST.id
       fieldToGenerate.reference = {

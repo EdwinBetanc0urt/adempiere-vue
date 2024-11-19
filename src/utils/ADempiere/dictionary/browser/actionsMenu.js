@@ -22,7 +22,6 @@ import language from '@/lang'
 // Constants
 import { OPERATOR_IN } from '@/utils/ADempiere/dataUtils.js'
 import { EXPORT_SUPPORTED_TYPES } from '@/utils/ADempiere/exportUtil.js'
-import { BUTTON } from '@/utils/ADempiere/references.js'
 
 // Utils and Helpers Methods
 import { showNotification } from '@/utils/ADempiere/notification.js'
@@ -97,14 +96,10 @@ export const exportAllRecords = {
           const fieldsListAvailable = fieldsList.filter(fieldItem => {
             const {
               isShowedTableFromUser,
-              display_type, is_encrypted
+              is_encrypted
             } = fieldItem
             // Hide encrypted fields
             if (is_encrypted) {
-              return false
-            }
-            // Hide simple button fields without a value
-            if (display_type === BUTTON.id) { // && fieldItem.referenceValue === 0) {
               return false
             }
 
