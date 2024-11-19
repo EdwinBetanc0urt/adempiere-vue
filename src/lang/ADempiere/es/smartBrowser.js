@@ -29,7 +29,8 @@ const smartBrowser = {
     title: 'Exportar Todos Los Registros',
     description: 'Registros que coincidan con el criterio de búsqueda.',
     successful: 'Exportación exitosa',
-    quantityExport: 'Cantidad de registros exportados: '
+    quantityExport: 'Cantidad de registros exportados: ',
+    withoutExtension: 'Debe seleccionar el formato/extensión específico.'
   },
   // process
   processAllRecords: {

@@ -29,7 +29,8 @@ const smartBrowser = {
     title: 'Export All Records',
     description: 'Records matching the query criteria.',
     successful: 'Successful export',
-    quantityExport: 'Quantity of exported records: '
+    quantityExport: 'Quantity of exported records: ',
+    withoutExtension: 'You must select the specific format/extension.'
   },
   // process
   processAllRecords: {

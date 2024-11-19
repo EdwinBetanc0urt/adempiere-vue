@@ -24,7 +24,7 @@ import { OPERATOR_IN } from '@/utils/ADempiere/dataUtils.js'
 import { EXPORT_SUPPORTED_TYPES } from '@/utils/ADempiere/exportUtil.js'
 
 // Utils and Helpers Methods
-import { showNotification } from '@/utils/ADempiere/notification.js'
+import { showMessage, showNotification } from '@/utils/ADempiere/notification.js'
 import { zoomIn } from '@/utils/ADempiere/coreUtils.js'
 import { isEmptyValue } from '@/utils/ADempiere/valueUtils.js'
 import { exportFileFromJson } from '@/utils/ADempiere/exportUtil.js'
@@ -72,7 +72,12 @@ export const exportAllRecords = {
   svg: false,
   icon: 'el-icon-download',
   actionName: 'exportAllRecords',
-  exportAllRecords: () => null,
+  exportAllRecords: () => {
+    showMessage({
+      type: 'info',
+      message: language.t('smartBrowser.exportAllRecords.withoutExtension')
+    })
+  },
   // generate export formats
   childs: Object.keys(EXPORT_SUPPORTED_TYPES).map(format => {
     return {

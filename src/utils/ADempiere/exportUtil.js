@@ -30,6 +30,11 @@ import { export_txt_to_zip } from '@/vendor/Export2Zip'
 import { isEmptyValue } from '@/utils/ADempiere/valueUtils'
 import { formatField } from '@/utils/ADempiere/valueFormat'
 
+/**
+ * Default extension/format to export records
+ */
+export const DEFAULT_EXPORT_TYPE = 'csv'
+
 // export file with records
 export const EXPORT_SUPPORTED_TYPES = {
   csv: language.t('extensionFile.csv'),
@@ -167,9 +172,10 @@ export function exportZipFile({
  * @param {string} containerUuid
  * @param {object} containerManager
  * @param {string} formatToExport
- * @param {array} formatToExport
+ * @param {array} selection
+ * @param {object} currrentRecord
  */
-export const exportRecords = ({ parentUuid, containerUuid, containerManager, formatToExport = 'json', selection = [], currrentRecord = { }}) => {
+export const exportRecords = ({ parentUuid, containerUuid, containerManager, formatToExport = DEFAULT_EXPORT_TYPE, selection = [], currrentRecord = { }}) => {
   let currentSelection = [currrentRecord]
   if (isEmptyValue(currrentRecord)) {
     currentSelection = containerManager.getSelection({
